@@ -3,6 +3,7 @@ html, body {
   padding: 0;
   background: #050518;
   overflow: hidden;
+  overscroll-behavior: none;
   height: 100%;
   font-family: "Press Start 2P", "Courier New", monospace;
 }
@@ -10,6 +11,7 @@ html, body {
 #game {
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

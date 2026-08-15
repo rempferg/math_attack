@@ -27,4 +27,24 @@ window.MB = window.MB || {};
   };
 
   window.game = new Phaser.Game(config);
+
+  const gameEl = document.getElementById("game");
+
+  function fit() {
+    if (!gameEl) return;
+    const h = window.innerHeight;
+    if (gameEl.style.height === h + "px") return;
+    gameEl.style.height = h + "px";
+    if (window.game && window.game.scale) {
+      try {
+        window.game.scale.refresh();
+      } catch (e) { /* not booted yet */ }
+    }
+  }
+
+  window.addEventListener("resize", fit);
+  window.addEventListener("orientationchange", function () {
+    window.setTimeout(fit, 200);
+  });
+  fit();
 })();
