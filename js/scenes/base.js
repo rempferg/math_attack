@@ -116,7 +116,7 @@ MB.Scenes.Base = new Phaser.Class({
     }
     const container = this.add.container(0, 0);
     this.fleetShips = [];
-    container.add(MB.ui.addText(this, 170, 205, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa", origin: 0, align: "left" }));
+    container.add(MB.ui.addText(this, 15, 72, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa", origin: 0, align: "left" }));
 
     const counts = {};
     let total = 0;
@@ -125,31 +125,33 @@ MB.Scenes.Base = new Phaser.Class({
       total += counts[id];
     }, this);
 
-    const cap = 24;
     const prev = this.fleetCounts || null;
-    const shares = this.allocateShares(counts, total, cap);
-    let idx = 0;
+    let rNeeded = 0;
+    while (total > 1 && 1 + 4 * rNeeded * (rNeeded + 1) < total) rNeeded++;
+    const spacing = total <= 1 ? 0 : Math.min(24, 160 / Math.max(1, rNeeded));
+    const pts = this.fleetPositions(total, 250, 275, spacing);
+
+    const oldShips = [];
+    const newShips = [];
+    let g = 0;
     C.TIER_ORDER.forEach(function (id) {
       const count = counts[id];
-      const share = shares[id] || 0;
-      const prevCount = prev ? (prev[id] || 0) : count;
-      for (let j = count - share; j < count; j++) {
-        if (j < 0) continue;
-        const g = this.add.graphics();
-        MB.sprites.drawShip(g, C.UNITS[id], true);
-        const baseY = 300 + (idx % 4) * 42;
-        const x = 250 + Math.floor(idx / 4) * 36;
-        if (j >= prevCount) {
-          g.setPosition(-80, baseY);
-          this.tweens.add({ targets: g, x: x, duration: 1100 + (j - prevCount) * 250, ease: "Cubic.easeOut" });
-        } else {
-          g.setPosition(x, baseY);
-        }
-        container.add(g);
-        this.fleetShips.push({ g: g, baseY: baseY, phase: Math.random() * Math.PI * 2, freq: 0.8 + Math.random() * 0.6 });
-        idx++;
+      const prevCount = prev ? (prev[id] || 0) : 0;
+      for (let j = 0; j < count; j++) {
+        const p = pts[g];
+        const rec = { id: id, x: p[0], y: p[1], isNew: j >= prevCount };
+        (rec.isNew ? newShips : oldShips).push(rec);
+        g++;
       }
     }, this);
+
+    oldShips.forEach(function (rec) {
+      this.addFleetShip(container, rec, false, 0);
+    }, this);
+    newShips.forEach(function (rec, i) {
+      this.addFleetShip(container, rec, true, i);
+    }, this);
+
     this.fleetCounts = {
       drone: counts.drone,
       fighter: counts.fighter,
@@ -157,39 +159,48 @@ MB.Scenes.Base = new Phaser.Class({
       dreadnought: counts.dreadnought
     };
 
-    if (idx === 0) {
+    if (total === 0) {
       container.add(MB.ui.addText(this, 250, 300, "No ships yet!\nTrain some in the armory.", { fontSize: "10px", color: "#6677aa" }));
-    } else if (total > cap) {
-      container.add(MB.ui.addText(this, 250, 500, "\u2026 and " + (total - cap) + " more", { fontSize: "10px", color: "#6677aa" }));
     }
 
     this.fleetContainer = container;
   },
 
-  allocateShares: function (counts, total, cap) {
-    const shares = { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 };
-    if (total === 0) return shares;
-    if (total <= cap) {
-      const ids = Object.keys(counts);
-      for (let i = 0; i < ids.length; i++) shares[ids[i]] = counts[ids[i]];
-      return shares;
-    }
-    const ids = Object.keys(counts).filter(function (id) { return counts[id] > 0; });
-    let remaining = cap;
-    ids.forEach(function (id) { shares[id] = 1; remaining--; });
-    while (remaining > 0) {
-      let best = ids[0];
-      let bestRatio = -1;
-      for (let i = 0; i < ids.length; i++) {
-        const id = ids[i];
-        if (shares[id] >= counts[id]) continue;
-        const ratio = counts[id] / shares[id];
-        if (ratio > bestRatio) { bestRatio = ratio; best = id; }
+  fleetPositions: function (n, cx, cy, spacing) {
+    const pts = [];
+    for (let r = 0; pts.length < n; r++) {
+      if (r === 0) {
+        pts.push([cx, cy]);
+        continue;
       }
-      shares[best]++;
-      remaining--;
+      const side = 2 * r;
+      const per = 8 * r;
+      for (let i = 0; i < per && pts.length < n; i++) {
+        const s = Math.floor(i / side);
+        const t = i % side;
+        let px, py;
+        if (s === 0) { px = t - r; py = -r; }
+        else if (s === 1) { px = r; py = t - r; }
+        else if (s === 2) { px = (side - 1 - t) - r; py = r; }
+        else { px = -r; py = (side - 1 - t) - r; }
+        pts.push([cx + px * spacing, cy + py * spacing]);
+      }
     }
-    return shares;
+    return pts;
+  },
+
+  addFleetShip: function (container, rec, animate, i) {
+    const C = MB.config;
+    const g = this.add.graphics();
+    MB.sprites.drawShip(g, C.UNITS[rec.id], true);
+    if (animate) {
+      g.setPosition(-80, rec.y);
+      this.tweens.add({ targets: g, x: rec.x, duration: Math.min(3800, 2000 + i * 300), ease: "Cubic.easeOut" });
+    } else {
+      g.setPosition(rec.x, rec.y);
+    }
+    container.add(g);
+    this.fleetShips.push({ g: g, baseY: rec.y, phase: Math.random() * Math.PI * 2, freq: 0.8 + Math.random() * 0.6 });
   },
 
   buildAttack: function () {

@@ -36,14 +36,14 @@ MB.ui = (function () {
     hit.setInteractive({ useHandCursor: true });
     hit.on("pointerover", function () {
       bg.clear();
-      bg.fillStyle(fillOver, 1);
+      bg.fillStyle(container._over, 1);
       bg.fillRoundedRect(-w / 2, -h / 2, w, h, 10);
       bg.lineStyle(3, border, 1);
       bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 10);
     });
     hit.on("pointerout", function () {
       bg.clear();
-      bg.fillStyle(fill, 1);
+      bg.fillStyle(container._fill, 1);
       bg.fillRoundedRect(-w / 2, -h / 2, w, h, 10);
       bg.lineStyle(3, border, 1);
       bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 10);
@@ -61,13 +61,19 @@ MB.ui = (function () {
 
   function addText(scene, x, y, label, opts) {
     opts = opts || {};
-    return scene.add.text(x, y, label, {
+    const style = {
       fontFamily: MB.config.FONT,
       fontSize: opts.fontSize || "16px",
       color: opts.color || "#ffffff",
       align: opts.align || "center",
       wordWrap: opts.wordWrap ? { width: opts.wordWrap } : undefined
-    }).setOrigin(opts.origin != null ? opts.origin : 0.5);
+    };
+    if (opts.fontStyle != null) style.fontStyle = opts.fontStyle;
+    if (opts.stroke != null) style.stroke = opts.stroke;
+    if (opts.strokeThickness != null) style.strokeThickness = opts.strokeThickness;
+    if (opts.lineHeight != null) style.lineHeight = opts.lineHeight;
+    if (opts.padding != null) style.padding = opts.padding;
+    return scene.add.text(x, y, label, style).setOrigin(opts.origin != null ? opts.origin : 0.5);
   }
 
   function addStars(scene, count) {

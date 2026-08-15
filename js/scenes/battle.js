@@ -397,6 +397,10 @@ MB.Scenes.Battle = new Phaser.Class({
 
     const survivors = this.playerUnits.filter(function (u) { return !u.dead; }).length;
     const enemyDead = this.enemyUnits.filter(function (u) { return u.dead; }).length;
+    let playerLostTotal = 0;
+    C.TIER_ORDER.forEach(function (id) {
+      playerLostTotal += this.playerLost[id] || 0;
+    }, this);
 
     C.TIER_ORDER.forEach(function (id) {
       state.army[id] = Math.max(0, (state.army[id] || 0) - (this.playerLost[id] || 0));
@@ -431,6 +435,7 @@ MB.Scenes.Battle = new Phaser.Class({
       outcome: victory ? "victory" : "defeat",
       playerRemaining: survivors,
       playerTotal: this.playerUnits.length,
+      playerLost: playerLostTotal,
       enemyDestroyed: enemyDead,
       enemyTotal: this.enemyUnits.length,
       baseDestroyed: state.baseDestroyed,

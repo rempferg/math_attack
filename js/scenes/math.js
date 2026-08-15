@@ -86,7 +86,7 @@ MB.Scenes.Math = new Phaser.Class({
 
   loadProblem: function () {
     const rec = this.state.pendingProblems[this.subject];
-    if (rec && rec.text && rec.band === this.band) {
+    if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
       this.problem = rec;
       if (this.mode === "upg") this.streak = rec.streak || 0;
     } else {

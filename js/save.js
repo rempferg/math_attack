@@ -33,9 +33,12 @@ MB.save = (function () {
       if (!raw) return defaults();
       const data = JSON.parse(raw);
       const base = defaults();
+      const dataSettings = data.settings || {};
+      const mergedSettings = Object.assign({}, base.settings, dataSettings);
+      mergedSettings.ops = Object.assign({}, base.settings.ops, dataSettings.ops || {});
       const merged = {
         version: base.version,
-        settings: Object.assign({}, base.settings, data.settings || {}),
+        settings: mergedSettings,
         army: Object.assign({}, base.army, data.army || {}),
         battlesWon: data.battlesWon || 0,
         battlesLost: data.battlesLost || 0,

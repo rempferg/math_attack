@@ -129,6 +129,7 @@ MB.Scenes.Setup = new Phaser.Class({
     if (!anyOp) {
       C.OPS.forEach(function (o) { state.settings.ops[o] = true; });
     }
+    state.pendingProblems = {};
     if (!state.enemyArmy || state.baseDestroyed) {
       MB.save.newMission(state);
     }
