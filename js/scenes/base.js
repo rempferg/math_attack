@@ -29,6 +29,19 @@ MB.Scenes.Base = new Phaser.Class({
       }.bind(this)
     });
 
+    if ((this.state.battlesWon || 0) >= 1) {
+      MB.ui.addButton(this, 735, 30, 130, 36, "WEAPONS LAB", {
+        fill: 0x334488,
+        fillOver: 0x5566cc,
+        fontSize: "9px",
+        onClick: function () {
+          MB.audio.click();
+          MB.audio.unlock();
+          MB.sceneGo(this, "Lab");
+        }.bind(this)
+      });
+    }
+
     this.enemyIntel = MB.ui.addText(this, C.WIDTH / 2, 60, "", { fontSize: "10px", color: "#ff7ad9" });
     this.buildArmory();
     this.buildFleet();
@@ -70,7 +83,6 @@ MB.Scenes.Base = new Phaser.Class({
     this.buildEnemyIntel();
 
     const container = this.add.container(680, 120);
-    container.add(MB.ui.addText(this, 0, -112, "ARMORY", { fontSize: "18px", color: "#ffd24d" }));
 
     const BAND_COLOR = { easy: "#88ff88", medium: "#ffd24d", hard: "#ff9466", veryHard: "#ff6666" };
     const tiers = C.CAP_TIERS[this.state.settings.difficulty] || ["drone"];
@@ -93,8 +105,6 @@ MB.Scenes.Base = new Phaser.Class({
       }));
     }, this);
 
-    container.add(MB.ui.addText(this, 0, 0 + tiers.length * 86 + 26, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa" }));
-
     this.armoryContainer = container;
   },
 
@@ -106,32 +116,80 @@ MB.Scenes.Base = new Phaser.Class({
     }
     const container = this.add.container(0, 0);
     this.fleetShips = [];
+    container.add(MB.ui.addText(this, 170, 205, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa", origin: 0, align: "left" }));
 
-    const order = C.TIER_ORDER;
+    const counts = {};
+    let total = 0;
+    C.TIER_ORDER.forEach(function (id) {
+      counts[id] = this.state.army[id] || 0;
+      total += counts[id];
+    }, this);
+
+    const cap = 24;
+    const prev = this.fleetCounts || null;
+    const shares = this.allocateShares(counts, total, cap);
     let idx = 0;
-    const maxDisplay = 18;
-    order.forEach(function (id) {
-      const count = this.state.army[id] || 0;
-      const shown = Math.min(count, maxDisplay - idx);
-      for (let s = 0; s < shown; s++) {
+    C.TIER_ORDER.forEach(function (id) {
+      const count = counts[id];
+      const share = shares[id] || 0;
+      const prevCount = prev ? (prev[id] || 0) : count;
+      for (let j = count - share; j < count; j++) {
+        if (j < 0) continue;
         const g = this.add.graphics();
         MB.sprites.drawShip(g, C.UNITS[id], true);
-        const baseY = 300 + (idx % 3) * 56;
-        const x = 250 + Math.floor(idx / 3) * 36;
-        g.setPosition(x, baseY);
+        const baseY = 300 + (idx % 4) * 42;
+        const x = 250 + Math.floor(idx / 4) * 36;
+        if (j >= prevCount) {
+          g.setPosition(-80, baseY);
+          this.tweens.add({ targets: g, x: x, duration: 1100 + (j - prevCount) * 250, ease: "Cubic.easeOut" });
+        } else {
+          g.setPosition(x, baseY);
+        }
         container.add(g);
         this.fleetShips.push({ g: g, baseY: baseY, phase: Math.random() * Math.PI * 2, freq: 0.8 + Math.random() * 0.6 });
         idx++;
       }
     }, this);
+    this.fleetCounts = {
+      drone: counts.drone,
+      fighter: counts.fighter,
+      cruiser: counts.cruiser,
+      dreadnought: counts.dreadnought
+    };
 
     if (idx === 0) {
       container.add(MB.ui.addText(this, 250, 300, "No ships yet!\nTrain some in the armory.", { fontSize: "10px", color: "#6677aa" }));
-    } else if (idx >= maxDisplay) {
-      container.add(MB.ui.addText(this, 430, 470, "\u2026 and more", { fontSize: "10px", color: "#6677aa" }));
+    } else if (total > cap) {
+      container.add(MB.ui.addText(this, 250, 500, "\u2026 and " + (total - cap) + " more", { fontSize: "10px", color: "#6677aa" }));
     }
 
     this.fleetContainer = container;
+  },
+
+  allocateShares: function (counts, total, cap) {
+    const shares = { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 };
+    if (total === 0) return shares;
+    if (total <= cap) {
+      const ids = Object.keys(counts);
+      for (let i = 0; i < ids.length; i++) shares[ids[i]] = counts[ids[i]];
+      return shares;
+    }
+    const ids = Object.keys(counts).filter(function (id) { return counts[id] > 0; });
+    let remaining = cap;
+    ids.forEach(function (id) { shares[id] = 1; remaining--; });
+    while (remaining > 0) {
+      let best = ids[0];
+      let bestRatio = -1;
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        if (shares[id] >= counts[id]) continue;
+        const ratio = counts[id] / shares[id];
+        if (ratio > bestRatio) { bestRatio = ratio; best = id; }
+      }
+      shares[best]++;
+      remaining--;
+    }
+    return shares;
   },
 
   buildAttack: function () {
@@ -148,7 +206,21 @@ MB.Scenes.Base = new Phaser.Class({
     const baseDestroyed = this.state.baseDestroyed;
 
     if (baseDestroyed) {
-      this.attackMsg = MB.ui.addText(this, C.WIDTH / 2, 480, "You destroyed the alien base!\nGo to SETUP to start a new mission.", { fontSize: "11px", color: "#ffd24d" });
+      this.attackMsg = MB.ui.addText(this, C.WIDTH / 2, 448, "Enemy base destroyed!\nThe aliens regrouped \u2014 attack their new base!", { fontSize: "11px", color: "#ffd24d" });
+      this.attackBtn = MB.ui.addButton(this, C.WIDTH / 2, 495, 240, 60, "ATTACK!", {
+        fill: 0xbb3333,
+        fillOver: 0xee4444,
+        fontSize: "20px",
+        onClick: function () {
+          MB.audio.click();
+          MB.audio.unlock();
+          const state = MB.save.load();
+          MB.save.newMission(state);
+          MB.save.save(state);
+          MB.sceneGo(this, "Battle");
+        }.bind(this)
+      });
+      this.attackPulse = true;
       return;
     }
     if (total === 0) {

@@ -3,18 +3,29 @@ window.MB = window.MB || {};
 MB.sprites = (function () {
   "use strict";
 
-  function drawShip(g, unit, facingRight) {
+  function drawShip(g, unit, facingRight, power) {
     const size = unit.size;
     const color = unit.color;
+    power = power || 0;
     g.clear();
+    if (power > 0) {
+      g.fillStyle(color, 0.1 + power * 0.05);
+      g.fillCircle(0, 0, size * (1.6 + power * 0.4));
+      g.fillStyle(color, 0.16 + power * 0.06);
+      g.fillCircle(0, 0, size * (1.1 + power * 0.3));
+    }
     const s = size;
     if (facingRight) {
       g.fillStyle(0x222244, 1);
       g.fillTriangle(-s, 0, s, -s, s, s);
       g.fillStyle(color, 1);
       g.fillTriangle(-s * 0.5, 0, s * 0.85, -s * 0.65, s * 0.85, s * 0.65);
-      g.fillStyle(0xffdd44, 1);
-      g.fillTriangle(-s * 0.9, -s * 0.3, -s * 0.9, s * 0.3, -s * 0.2, 0);
+      g.fillStyle(power >= 3 ? 0xffffff : (power >= 2 ? 0xffaa44 : (power >= 1 ? 0xffcc55 : 0xffdd44)), 1);
+      g.fillTriangle(-s * (0.9 + power * 0.12), -s * 0.3, -s * (0.9 + power * 0.12), s * 0.3, -s * 0.2, 0);
+      if (power >= 2) {
+        g.fillStyle(0xffffff, 0.85);
+        g.fillCircle(-s * 0.85, 0, s * 0.1);
+      }
       g.fillStyle(0xffffff, 1);
       g.fillCircle(s * 0.4, 0, s * 0.18);
     } else {
@@ -22,10 +33,64 @@ MB.sprites = (function () {
       g.fillTriangle(s, 0, -s, -s, -s, s);
       g.fillStyle(color, 1);
       g.fillTriangle(s * 0.5, 0, -s * 0.85, -s * 0.65, -s * 0.85, s * 0.65);
-      g.fillStyle(0xffdd44, 1);
-      g.fillTriangle(s * 0.9, -s * 0.3, s * 0.9, s * 0.3, s * 0.2, 0);
+      g.fillStyle(power >= 3 ? 0xffffff : (power >= 2 ? 0xffaa44 : (power >= 1 ? 0xffcc55 : 0xffdd44)), 1);
+      g.fillTriangle(s * (0.9 + power * 0.12), -s * 0.3, s * (0.9 + power * 0.12), s * 0.3, s * 0.2, 0);
+      if (power >= 2) {
+        g.fillStyle(0xffffff, 0.85);
+        g.fillCircle(s * 0.85, 0, s * 0.1);
+      }
       g.fillStyle(0xffffff, 1);
       g.fillCircle(-s * 0.4, 0, s * 0.18);
+    }
+  }
+
+  function drawBolt(g, level) {
+    g.clear();
+    level = level || 0;
+    if (level <= 0) {
+      g.fillStyle(0x66e0ff, 1);
+      g.fillCircle(0, 0, 3);
+      return;
+    }
+    const core = level >= 3 ? 0xffffff : 0x66e0ff;
+    const glow = level >= 3 ? 0x88ddff : 0x66e0ff;
+    g.fillStyle(glow, 0.12 + level * 0.04);
+    g.fillCircle(0, 0, 5 + level * 2.5);
+    g.fillStyle(core, 1);
+    g.fillCircle(0, 0, 3 + level * 0.8);
+    const L = 4 + level * 3;
+    g.fillTriangle(-L, -2 - level * 0.5, 2 + level, 0, -L, 2 + level * 0.5);
+    if (level >= 2) {
+      g.fillStyle(0xffffff, 0.7);
+      g.fillCircle(level * 1.5, 0, 2 + level * 0.4);
+      g.fillTriangle(-L * 0.7, -1, 2, 0, -L * 0.7, 1);
+    }
+    if (level >= 3) {
+      g.lineStyle(1.5, 0xffffff, 0.5);
+      g.strokeCircle(0, 0, 6 + level * 2);
+    }
+  }
+
+  function drawUpgradeIcon(g, track) {
+    g.clear();
+    if (track === "damage") {
+      g.fillStyle(0xffd24d, 1);
+      g.fillPoints([
+        { x: 6, y: -14 }, { x: -5, y: 2 }, { x: 1, y: 2 },
+        { x: -6, y: 14 }, { x: 4, y: -4 }, { x: -2, y: -4 }
+      ], true);
+    } else if (track === "fireRate") {
+      g.fillStyle(0x66e0ff, 1);
+      g.fillTriangle(-8, -6, 8, 0, -8, 6);
+      g.fillTriangle(-3, -10, 11, 0, -3, 10);
+    } else {
+      g.fillStyle(0x88ff88, 1);
+      g.fillCircle(0, 0, 3);
+      g.lineStyle(2, 0x88ff88, 0.8);
+      g.lineBetween(-13, 0, 13, 0);
+      g.lineBetween(0, -13, 0, 13);
+      g.lineStyle(1, 0x88ff88, 0.4);
+      g.strokeCircle(0, 0, 9);
     }
   }
 
@@ -85,5 +150,5 @@ MB.sprites = (function () {
     }
   }
 
-  return { drawShip: drawShip, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase };
+  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase };
 })();

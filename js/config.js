@@ -25,14 +25,14 @@ MB.config = (function () {
     hard: "Big numbers. Unlocks Cruisers and Dreadnoughts."
   };
 
-  const BANDS = ["easy", "medium", "hard", "veryHard"];
-  const BAND_NAMES = { easy: "Easy", medium: "Medium", hard: "Hard", veryHard: "Very Hard" };
+  const BANDS = ["easy", "medium", "hard", "veryHard", "elite"];
+  const BAND_NAMES = { easy: "Easy", medium: "Medium", hard: "Hard", veryHard: "Very Hard", elite: "Elite" };
 
   const NUM_RANGES = {
-    add: { easy: 10, medium: 20, hard: 50, veryHard: 100 },
-    sub: { easy: 10, medium: 20, hard: 50, veryHard: 100 },
-    mul: { easy: 5, medium: 10, hard: 12, veryHard: 15 },
-    div: { easy: 5, medium: 9, hard: 12, veryHard: 15 }
+    add: { easy: 10, medium: 20, hard: 50, veryHard: 100, elite: 150 },
+    sub: { easy: 10, medium: 20, hard: 50, veryHard: 100, elite: 150 },
+    mul: { easy: 5, medium: 10, hard: 12, veryHard: 15, elite: 20 },
+    div: { easy: 5, medium: 9, hard: 12, veryHard: 15, elite: 20 }
   };
 
   const UNITS = {
@@ -110,6 +110,37 @@ MB.config = (function () {
     hard: { grunt: 8, brute: 4, queen: 1, baseHp: 650 }
   };
 
+  const UPGRADE_ORDER = ["damage", "fireRate", "range"];
+  const UPGRADES = {
+    damage: {
+      id: "damage",
+      name: "Damage Boost",
+      perLevel: 0.2,
+      chains: [4, 5, 6],
+      desc: "All ships deal +20% damage per level",
+      icon: "damage"
+    },
+    fireRate: {
+      id: "fireRate",
+      name: "Fire Rate Boost",
+      perLevel: 0.1,
+      chains: [4, 5, 6],
+      desc: "Ships fire 10% faster per level",
+      icon: "fireRate"
+    },
+    range: {
+      id: "range",
+      name: "Range Boost",
+      perLevel: 0.12,
+      chains: [4, 5, 6],
+      desc: "Weapons reach 12% farther per level",
+      icon: "range"
+    }
+  };
+  const UPGRADE_LEVELS = 3;
+
+  const SCORE_WEIGHTS = { grunt: 10, brute: 25, queen: 50 };
+
   return {
     WIDTH: WIDTH,
     HEIGHT: HEIGHT,
@@ -127,6 +158,10 @@ MB.config = (function () {
     TIER_ORDER: TIER_ORDER,
     CAP_TIERS: CAP_TIERS,
     ENEMY_UNITS: ENEMY_UNITS,
-    ENEMY_ARMIES: ENEMY_ARMIES
+    ENEMY_ARMIES: ENEMY_ARMIES,
+    UPGRADE_ORDER: UPGRADE_ORDER,
+    UPGRADES: UPGRADES,
+    UPGRADE_LEVELS: UPGRADE_LEVELS,
+    SCORE_WEIGHTS: SCORE_WEIGHTS
   };
 })();

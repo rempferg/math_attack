@@ -2,10 +2,11 @@ window.MB = window.MB || {};
 
 MB.sceneGo = function (scene, key, data) {
   const sm = scene.scene.manager;
+  if (!sm.isActive("Hud")) sm.launch("Hud");
   const all = sm.getScenes(true).slice();
   for (let i = 0; i < all.length; i++) {
     const s = all[i];
-    if (s.scene.key !== key) sm.stop(s.scene.key);
+    if (s.scene.key !== key && s.scene.key !== "Hud") sm.stop(s.scene.key);
   }
   sm.start(key, data);
 };

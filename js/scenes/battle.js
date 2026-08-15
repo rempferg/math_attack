@@ -14,6 +14,8 @@ MB.Scenes.Battle = new Phaser.Class({
   create: function () {
     const C = MB.config;
     this.state = MB.save.load();
+    this.upg = this.state.upgrades || {};
+    this.power = Math.max(this.upg.damage || 0, this.upg.fireRate || 0, this.upg.range || 0);
 
     this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x0a0a1e, 1);
     this.stars = MB.ui.addStars(this, 50);
@@ -33,6 +35,12 @@ MB.Scenes.Battle = new Phaser.Class({
     this.spawnEnemies();
 
     this.base = this.spawnBase();
+    this.battleBaseHp = this.base.hp;
+    this.battleEnemyCounts = {
+      grunt: this.state.enemyArmy ? (this.state.enemyArmy.grunt || 0) : 0,
+      brute: this.state.enemyArmy ? (this.state.enemyArmy.brute || 0) : 0,
+      queen: this.state.enemyArmy ? (this.state.enemyArmy.queen || 0) : 0
+    };
 
     MB.ui.addText(this, 60, 55, "Your fleet: " + this.playerUnits.length, { fontSize: "10px", color: "#66c8ff", origin: 0 });
     MB.ui.addText(this, C.WIDTH - 60, 55, "Alien defenders: " + (this.enemyUnits.length + 1), { fontSize: "10px", color: "#ff7ad9", origin: 1 });
@@ -41,6 +49,9 @@ MB.Scenes.Battle = new Phaser.Class({
   spawnPlayers: function () {
     const C = MB.config;
     const MAX = 120;
+    const dmgMul = 1 + (this.upg.damage || 0) * C.UPGRADES.damage.perLevel;
+    const rateMul = 1 + (this.upg.fireRate || 0) * C.UPGRADES.fireRate.perLevel;
+    const rangeMul = 1 + (this.upg.range || 0) * C.UPGRADES.range.perLevel;
     let idx = 0;
     C.TIER_ORDER.forEach(function (id) {
       let count = this.state.army[id] || 0;
@@ -48,7 +59,7 @@ MB.Scenes.Battle = new Phaser.Class({
       for (let i = 0; i < count; i++) {
         const def = C.UNITS[id];
         const g = this.add.graphics();
-        MB.sprites.drawShip(g, def, true);
+        MB.sprites.drawShip(g, def, true, this.power);
         const x = 70 + (idx % 5) * 48;
         const y = 150 + Math.floor(idx / 5) * 62;
         g.setPosition(x, y);
@@ -61,11 +72,11 @@ MB.Scenes.Battle = new Phaser.Class({
           bar: bar,
           x: x, y: y,
           hp: def.hp, maxHp: def.hp,
-          damage: def.damage,
-          range: def.range,
+          damage: Math.round(def.damage * dmgMul),
+          range: Math.round(def.range * rangeMul),
           speed: def.speed,
           cooldown: 0,
-          cooldownMax: def.fireRate,
+          cooldownMax: Math.round(def.fireRate / rateMul),
           dead: false
         });
         idx++;
@@ -157,13 +168,16 @@ MB.Scenes.Battle = new Phaser.Class({
   fire: function (u, target) {
     this.shotCounter++;
     const g = this.add.graphics();
-    const color = u.side === "player" ? 0x66e0ff : 0xff6d6d;
-    g.fillStyle(color, 1);
-    g.fillCircle(0, 0, 3);
+    const boltLevel = this.upg.damage || 0;
+    MB.sprites.drawBolt(g, boltLevel);
     g.setPosition(u.x, u.y);
     this.projectiles.push({ g: g, x: u.x, y: u.y, target: target, speed: 300, damage: u.damage, side: u.side });
     if (this.shotCounter % 4 === 1) {
-      if (u.side === "player") MB.audio.laser(); else MB.audio.alienShot();
+      if (u.side === "player") {
+        if (boltLevel > 0) MB.audio.powerLaser(boltLevel); else MB.audio.laser();
+      } else {
+        MB.audio.alienShot();
+      }
     }
   },
 
@@ -300,11 +314,18 @@ MB.Scenes.Battle = new Phaser.Class({
     }
     if (unit.side === "player") {
       this.playerLost[unit.kind] = (this.playerLost[unit.kind] || 0) + 1;
+      MB.audio.explode();
+      this.explosion(unit.x, unit.y, unit.kind === "queen" || unit.kind === "dreadnought");
     } else {
       this.enemyKilled[unit.kind] = (this.enemyKilled[unit.kind] || 0) + 1;
+      if (this.power > 0) {
+        MB.audio.powerBoom();
+        this.explosion(unit.x, unit.y, true);
+      } else {
+        MB.audio.explode();
+        this.explosion(unit.x, unit.y, unit.kind === "queen" || unit.kind === "dreadnought");
+      }
     }
-    MB.audio.explode();
-    this.explosion(unit.x, unit.y, unit.kind === "queen" || unit.kind === "dreadnought");
     unit.g.destroy();
     unit.bar.destroy();
   },
@@ -318,6 +339,54 @@ MB.Scenes.Battle = new Phaser.Class({
     } else if (playerAlive === 0) {
       this.endBattle(false);
     }
+  },
+
+  computePoints: function () {
+    const C = MB.config;
+    const boost = this.state.enemyBoost || 1;
+    let pts = Math.round(this.battleBaseHp || 0);
+    ["grunt", "brute", "queen"].forEach(function (type) {
+      pts += Math.round((this.battleEnemyCounts[type] || 0) * C.SCORE_WEIGHTS[type] * boost);
+    }, this);
+    return Math.max(0, pts);
+  },
+
+  spawnScoreBurst: function (points, x, y) {
+    for (let i = 0; i < 16; i++) {
+      const g = this.add.graphics();
+      const ang = -Math.PI / 2 + (Math.random() * 1.9 - 0.95);
+      const sp = 120 + Math.random() * 200;
+      g.fillStyle(0xffd24d, 1);
+      g.fillCircle(0, 0, 2 + Math.random() * 2.5);
+      g.setPosition(x, y);
+      (function (gg, a, dd) {
+        this.tweens.add({
+          targets: gg,
+          x: x + Math.cos(a) * dd,
+          y: y + Math.sin(a) * dd - 60,
+          alpha: 0,
+          duration: 800 + Math.random() * 600,
+          ease: "Cubic.easeOut",
+          onComplete: function () { gg.destroy(); }
+        });
+      }).call(this, g, ang, sp);
+    }
+    const t = this.add.text(x, y, "+" + points, {
+      fontFamily: MB.config.FONT,
+      fontSize: "26px",
+      color: "#ffd24d",
+      stroke: "#000000",
+      strokeThickness: 4
+    }).setOrigin(0.5);
+    this.tweens.add({
+      targets: t,
+      y: y - 130,
+      scale: 1.35,
+      alpha: 0,
+      duration: 1400,
+      ease: "Cubic.easeOut",
+      onComplete: function () { t.destroy(); }
+    });
   },
 
   endBattle: function (victory) {
@@ -340,10 +409,18 @@ MB.Scenes.Battle = new Phaser.Class({
     state.enemyBaseHp = Math.max(0, (state.enemyBaseHp || 0) - this.baseDamageDealt);
     state.enemiesDestroyed = (state.enemiesDestroyed || 0) + enemyDead;
 
+    let pts = 0;
     if (victory) {
       state.battlesWon = (state.battlesWon || 0) + 1;
       if (state.enemyBaseHp <= 0) state.baseDestroyed = true;
       MB.audio.victory();
+      pts = this.computePoints();
+      if (pts > 0) {
+        const newTotal = MB.save.scoreAdd(pts);
+        MB.audio.score();
+        this.spawnScoreBurst(pts, this.base.x, this.base.y - 20);
+        MB.hud.setScore(newTotal);
+      }
     } else {
       state.battlesLost = (state.battlesLost || 0) + 1;
       MB.audio.defeat();
@@ -356,7 +433,8 @@ MB.Scenes.Battle = new Phaser.Class({
       playerTotal: this.playerUnits.length,
       enemyDestroyed: enemyDead,
       enemyTotal: this.enemyUnits.length,
-      baseDestroyed: state.baseDestroyed
+      baseDestroyed: state.baseDestroyed,
+      pointsEarned: victory ? pts : 0
     };
 
     this.time.delayedCall(victory ? 1600 : 1400, function () {

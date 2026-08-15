@@ -11,8 +11,9 @@ MB.Scenes.Menu = new Phaser.Class({
 
   create: function () {
     const C = MB.config;
+    if (!this.scene.isActive("Hud")) this.scene.launch("Hud");
     this.stars = MB.ui.addStars(this, 90);
-    MB.ui.addText(this, C.WIDTH / 2, 120, "MATH BLASTER", { fontSize: "44px", color: "#66c8ff" });
+    MB.ui.addText(this, C.WIDTH / 2, 120, "MATH ATTACK", { fontSize: "44px", color: "#66c8ff" });
     MB.ui.addText(this, C.WIDTH / 2, 175, "Space Adventure", { fontSize: "18px", color: "#ffd24d" });
     MB.ui.addText(this, C.WIDTH / 2, 210, "Solve math. Build a fleet. Destroy the alien base.", { fontSize: "11px", color: "#aabbee" });
 
@@ -43,13 +44,48 @@ MB.Scenes.Menu = new Phaser.Class({
         fillOver: 0xaa4444,
         fontSize: "11px",
         onClick: function () {
-          MB.save.clear();
-          this.scene.restart();
+          MB.audio.click();
+          this.showResetConfirm();
         }.bind(this)
       });
     }
 
     MB.ui.addText(this, C.WIDTH / 2, 510, "For kids who love space and math \u2728", { fontSize: "9px", color: "#6677aa" });
+  },
+
+  showResetConfirm: function () {
+    if (this.confirmModal) return;
+    const C = MB.config;
+    const overlay = this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x000000, 0.78);
+    overlay.setInteractive();
+    const panel = MB.ui.addPanel(this, C.WIDTH / 2, 265, 500, 260, { fill: 0x111144, alpha: 0.98, border: 0xff6666 });
+    const title = MB.ui.addText(this, C.WIDTH / 2, 195, "RESET PROGRESS?", { fontSize: "18px", color: "#ff6666" });
+    const body = MB.ui.addText(this, C.WIDTH / 2, 250, "This will start the game from scratch.\nYou will lose all progress.\nThis cannot be reverted!", { fontSize: "11px", color: "#dde3ff" });
+    const note = MB.ui.addText(this, C.WIDTH / 2, 318, "(Your lifetime score \u2605 is kept.)", { fontSize: "9px", color: "#8899cc" });
+    const cancel = MB.ui.addButton(this, C.WIDTH / 2 - 120, 368, 200, 44, "CANCEL", {
+      fill: 0x2a5ab0,
+      fillOver: 0x3f7de0,
+      fontSize: "13px",
+      onClick: function () {
+        MB.audio.click();
+        this.confirmModal.destroy(true);
+        this.confirmModal = null;
+      }.bind(this)
+    });
+    const reset = MB.ui.addButton(this, C.WIDTH / 2 + 120, 368, 200, 44, "YES, RESET", {
+      fill: 0x883333,
+      fillOver: 0xaa4444,
+      fontSize: "13px",
+      onClick: function () {
+        MB.audio.click();
+        this.confirmModal.destroy(true);
+        this.confirmModal = null;
+        MB.save.clear();
+        this.scene.restart();
+      }.bind(this)
+    });
+    this.confirmModal = this.add.container(0, 0);
+    this.confirmModal.add([overlay, panel, title, body, note, cancel, reset]);
   },
 
   update: function (_time, dt) {

@@ -32,24 +32,17 @@ MB.Scenes.Result = new Phaser.Class({
     MB.ui.addText(this, C.WIDTH / 2, 245, "BATTLE REPORT", { fontSize: "13px", color: "#66c8ff" });
     MB.ui.addText(this, C.WIDTH / 2, 285, "Your ships: " + d.playerRemaining + " / " + d.playerTotal, { fontSize: "12px", color: "#88aadd" });
     MB.ui.addText(this, C.WIDTH / 2, 320, "Enemies destroyed: " + d.enemyDestroyed + " / " + d.enemyTotal, { fontSize: "12px", color: "#88aadd" });
+    if (d.pointsEarned > 0) {
+      MB.ui.addText(this, C.WIDTH / 2, 368, "Points earned: +" + d.pointsEarned + "   (total " + MB.save.scoreLoad() + ")", { fontSize: "12px", color: "#ffd24d" });
+    }
 
-    MB.ui.addButton(this, C.WIDTH / 2 - 130, 420, 230, 52, "RETURN TO BASE", {
+    MB.ui.addButton(this, C.WIDTH / 2, 420, 230, 52, "RETURN TO BASE", {
       fill: 0x2a5ab0,
       fillOver: 0x3f7de0,
       fontSize: "12px",
       onClick: function () {
         MB.audio.click();
         MB.sceneGo(this, "Base");
-      }.bind(this)
-    });
-
-    MB.ui.addButton(this, C.WIDTH / 2 + 130, 420, 230, 52, victory ? "NEW MISSION" : "CHANGE MATH", {
-      fill: 0x884499,
-      fillOver: 0xa55ab5,
-      fontSize: "12px",
-      onClick: function () {
-        MB.audio.click();
-        MB.sceneGo(this, "Setup");
       }.bind(this)
     });
   },

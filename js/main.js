@@ -18,9 +18,11 @@ window.MB = window.MB || {};
       MB.Scenes.Menu,
       MB.Scenes.Setup,
       MB.Scenes.Base,
+      MB.Scenes.Lab,
       MB.Scenes.Math,
       MB.Scenes.Battle,
-      MB.Scenes.Result
+      MB.Scenes.Result,
+      MB.Scenes.Hud
     ]
   };
 

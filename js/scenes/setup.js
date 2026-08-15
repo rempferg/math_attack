@@ -130,20 +130,7 @@ MB.Scenes.Setup = new Phaser.Class({
       C.OPS.forEach(function (o) { state.settings.ops[o] = true; });
     }
     if (!state.enemyArmy || state.baseDestroyed) {
-      if (state.enemyArmy) {
-        state.mission = (state.mission || 1) + 1;
-      }
-      const m = state.mission || 1;
-      const boost = 1 + (m - 1) * 0.12;
-      const army = C.ENEMY_ARMIES[state.settings.difficulty];
-      state.enemyBoost = boost;
-      state.enemyArmy = {
-        grunt: army.grunt + (m - 1),
-        brute: army.brute + Math.floor((m - 1) / 2),
-        queen: army.queen + Math.floor((m - 1) / 3)
-      };
-      state.enemyBaseHp = Math.round(army.baseHp * boost);
-      state.baseDestroyed = false;
+      MB.save.newMission(state);
     }
     MB.save.save(state);
     MB.audio.unlock();
