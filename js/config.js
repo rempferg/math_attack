@@ -145,9 +145,9 @@ MB.config = (function () {
       beamTick: 200,
       chains: [5, 6, 7],
       levels: [
-        { damage: 10, range: 350, cooldown: 12000 },
-        { damage: 23, range: 500, cooldown: 9000 },
-        { damage: 24, range: 480, cooldown: 9000 }
+        { damage: 30, range: 350, cooldown: 12000 },
+        { damage: 69, range: 500, cooldown: 9000 },
+        { damage: 144, range: 480, cooldown: 9000 }
       ],
       desc: "Dreadnoughts fire a sustained beam that melts one target",
       icon: "sniperLaser"
