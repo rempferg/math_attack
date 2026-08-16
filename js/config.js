@@ -13,7 +13,7 @@ MB.config = (function () {
     add: "+",
     sub: "\u2212",
     mul: "\u00d7",
-    div: "\u00f7"
+    div: ":"
   };
   const OP_NAMES = { add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division" };
 

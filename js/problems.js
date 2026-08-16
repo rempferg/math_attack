@@ -36,7 +36,7 @@ MB.math = (function () {
         b = rnd(2, cap);
         answer = rnd(2, cap);
         a = b * answer;
-        text = a + " \u00f7 " + b;
+        text = a + " : " + b;
         break;
       default:
         a = rnd(1, 10);
