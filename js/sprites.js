@@ -150,5 +150,54 @@ MB.sprites = (function () {
     }
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase };
+  function drawSniperBeam(g, level, fromX, fromY, toX, toY) {
+    g.clear();
+    var dx = toX - fromX;
+    var dy = toY - fromY;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var nx = -dy / len;
+    var ny = dx / len;
+
+    if (level >= 2) {
+      g.lineStyle(5, 0xff3333, 0.9);
+      g.lineBetween(fromX, fromY, toX, toY);
+    } else {
+      g.lineStyle(2, 0xff3333, 0.9);
+      g.lineBetween(fromX, fromY, toX, toY);
+    }
+
+    if (level >= 3) {
+      var off = 6;
+      g.lineStyle(1, 0xffaa33, 0.6);
+      g.lineBetween(fromX + nx * off, fromY + ny * off, toX + nx * off, toY + ny * off);
+      g.lineBetween(fromX - nx * off, fromY - ny * off, toX - nx * off, toY - ny * off);
+    }
+
+    g.fillStyle(0xff6666, 0.7);
+    g.fillCircle(toX, toY, 4 + level);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillCircle(toX, toY, 2);
+  }
+
+  function drawSniperIcon(g) {
+    g.clear();
+    g.lineStyle(2, 0xff4444, 1);
+    g.lineBetween(-12, 8, 12, -8);
+    g.fillStyle(0xff6666, 1);
+    g.fillCircle(12, -8, 3);
+    g.fillStyle(0xffaa33, 0.6);
+    g.fillCircle(12, -8, 6);
+  }
+
+  function drawLockIcon(g) {
+    g.clear();
+    g.fillStyle(0x666688, 1);
+    g.fillRoundedRect(-8, -2, 16, 12, 2);
+    g.lineStyle(2, 0x666688, 1);
+    g.strokeCircle(0, -6, 6);
+    g.fillStyle(0x888899, 1);
+    g.fillCircle(0, 3, 2);
+  }
+
+  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawLockIcon: drawLockIcon };
 })();

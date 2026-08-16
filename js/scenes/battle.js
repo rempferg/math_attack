@@ -77,7 +77,16 @@ MB.Scenes.Battle = new Phaser.Class({
           speed: def.speed,
           cooldown: 0,
           cooldownMax: Math.round(def.fireRate / rateMul),
-          dead: false
+          dead: false,
+          beam: id === "dreadnought" && (this.upg.sniperLaser || 0) > 0 ? {
+            active: false,
+            target: null,
+            remaining: 0,
+            tickTimer: 0,
+            cooldown: 0,
+            gfx: null,
+            soundHandle: null
+          } : null
         });
         idx++;
       }
@@ -147,6 +156,100 @@ MB.Scenes.Battle = new Phaser.Class({
     return Math.sqrt(dx * dx + dy * dy);
   },
 
+  selectSniperTarget: function (u) {
+    const C = MB.config;
+    const lvl = C.UPGRADES.sniperLaser.levels[(this.upg.sniperLaser || 1) - 1];
+    const totalTicks = Math.round(C.UPGRADES.sniperLaser.beamDuration / C.UPGRADES.sniperLaser.beamTick);
+    const totalDmg = lvl.damage * totalTicks;
+    let bestKill = null;
+    let bestKillVal = -1;
+    let bestHp = null;
+    let bestHpVal = -1;
+    for (let i = 0; i < this.enemyUnits.length; i++) {
+      const e = this.enemyUnits[i];
+      if (e.dead || e.hp <= 0) continue;
+      const d = this.dist(u.x, u.y, e.x, e.y);
+      if (d > lvl.range) continue;
+      const val = C.SCORE_WEIGHTS[e.kind] || 0;
+      if (e.hp <= totalDmg && val > bestKillVal) {
+        bestKill = e;
+        bestKillVal = val;
+      }
+      if (e.hp > bestHpVal) {
+        bestHp = e;
+        bestHpVal = e.hp;
+      }
+    }
+    return bestKill || bestHp;
+  },
+
+  startBeam: function (u, target) {
+    const C = MB.config;
+    const lvl = C.UPGRADES.sniperLaser.levels[(this.upg.sniperLaser || 1) - 1];
+    u.beam.active = true;
+    u.beam.target = target;
+    u.beam.remaining = C.UPGRADES.sniperLaser.beamDuration;
+    u.beam.tickTimer = 0;
+    u.beam.gfx = this.add.graphics();
+    MB.audio.sniperCharge();
+    u.beam.soundHandle = MB.audio.sniperBeamStart();
+  },
+
+  stopBeam: function (u) {
+    u.beam.active = false;
+    u.beam.target = null;
+    if (u.beam.gfx) {
+      u.beam.gfx.destroy();
+      u.beam.gfx = null;
+    }
+    if (u.beam.soundHandle) {
+      u.beam.soundHandle.stop();
+      u.beam.soundHandle = null;
+    }
+    const C = MB.config;
+    const lvl = C.UPGRADES.sniperLaser.levels[(this.upg.sniperLaser || 1) - 1];
+    u.beam.cooldown = lvl.cooldown;
+  },
+
+  updateSniperBeams: function (dtSec) {
+    const C = MB.config;
+    const snLevel = this.upg.sniperLaser || 0;
+    if (snLevel <= 0) return;
+    const lvl = C.UPGRADES.sniperLaser.levels[snLevel - 1];
+    const dtMs = dtSec * 1000;
+    for (let i = 0; i < this.playerUnits.length; i++) {
+      const u = this.playerUnits[i];
+      if (u.dead || !u.beam) continue;
+      if (u.beam.active) {
+        const target = u.beam.target;
+        if (!target || target.dead || target.hp <= 0) {
+          this.stopBeam(u);
+          continue;
+        }
+        u.beam.remaining -= dtMs;
+        u.beam.tickTimer += dtMs;
+        if (u.beam.tickTimer >= C.UPGRADES.sniperLaser.beamTick) {
+          u.beam.tickTimer -= C.UPGRADES.sniperLaser.beamTick;
+          this.hit(target, lvl.damage);
+        }
+        if (u.beam.gfx) {
+          MB.sprites.drawSniperBeam(u.beam.gfx, snLevel, u.x, u.y, target.x, target.y);
+        }
+        if (u.beam.remaining <= 0) {
+          this.stopBeam(u);
+        }
+      } else {
+        u.beam.cooldown -= dtMs;
+        if (u.beam.cooldown <= 0) {
+          const target = this.selectSniperTarget(u);
+          if (target) {
+            this.startBeam(u, target);
+          }
+        }
+      }
+    }
+  },
+
   nearestTarget: function (u) {
     const C = MB.config;
     const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits;
@@ -187,6 +290,7 @@ MB.Scenes.Battle = new Phaser.Class({
 
     this.updateUnits(time, dtSec);
     this.updateProjectiles(dtSec);
+    this.updateSniperBeams(dtSec);
     this.checkEnd();
   },
 
@@ -307,6 +411,9 @@ MB.Scenes.Battle = new Phaser.Class({
 
   kill: function (unit) {
     unit.dead = true;
+    if (unit.beam) {
+      this.stopBeam(unit);
+    }
     if (unit === this.base) {
       MB.audio.boom();
       this.explosion(unit.x, unit.y, true);
@@ -394,6 +501,10 @@ MB.Scenes.Battle = new Phaser.Class({
     this.ended = true;
     const C = MB.config;
     const state = this.state;
+
+    for (let i = 0; i < this.playerUnits.length; i++) {
+      if (this.playerUnits[i].beam) this.stopBeam(this.playerUnits[i]);
+    }
 
     const survivors = this.playerUnits.filter(function (u) { return !u.dead; }).length;
     const enemyDead = this.enemyUnits.filter(function (u) { return u.dead; }).length;

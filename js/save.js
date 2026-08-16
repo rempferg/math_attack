@@ -20,7 +20,7 @@ MB.save = (function () {
       baseDestroyed: false,
       mission: 1,
       pendingProblems: {},
-      upgrades: { damage: 0, fireRate: 0, range: 0 },
+      upgrades: { damage: 0, fireRate: 0, range: 0, sniperLaser: 0 },
       enemyArmy: null,
       enemyBoost: 1,
       enemyBaseHp: 0

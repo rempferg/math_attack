@@ -95,6 +95,42 @@ MB.audio = (function () {
       [880, 1174, 1568, 2093].forEach(function (f, i) { setTimeout(function () { tone(f, 0.08, "square", 0.13); }, i * 75); });
       setTimeout(function () { noise(0.25, 0.12); }, 300);
     },
-    defeat: function () { [330, 262, 196, 131].forEach(function (f, i) { setTimeout(function () { tone(f, 0.3, "sawtooth", 0.12); }, i * 200); }); }
+    defeat: function () { [330, 262, 196, 131].forEach(function (f, i) { setTimeout(function () { tone(f, 0.3, "sawtooth", 0.12); }, i * 200); }); },
+    sniperCharge: function () {
+      tone(200, 0.3, "sawtooth", 0.12, 800);
+    },
+    sniperBeamStart: function () {
+      if (muted) return { stop: function () {} };
+      var c = ensure();
+      if (!c) return { stop: function () {} };
+      var t = c.currentTime;
+      var osc = c.createOscillator();
+      var gain = c.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(300, t);
+      osc.frequency.setValueAtTime(320, t + 0.1);
+      osc.frequency.setValueAtTime(280, t + 0.2);
+      osc.frequency.setValueAtTime(310, t + 0.3);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.1, t + 0.05);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t);
+      var vibrato = c.createOscillator();
+      var vibratoGain = c.createGain();
+      vibrato.frequency.value = 8;
+      vibratoGain.gain.value = 15;
+      vibrato.connect(vibratoGain).connect(osc.frequency);
+      vibrato.start(t);
+      return {
+        stop: function () {
+          var now = c.currentTime;
+          gain.gain.cancelScheduledValues(now);
+          gain.gain.setValueAtTime(gain.gain.value, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+          vibrato.stop(now + 0.1);
+          osc.stop(now + 0.12);
+        }
+      };
+    }
   };
 })();

@@ -111,6 +111,7 @@ MB.config = (function () {
   };
 
   const UPGRADE_ORDER = ["damage", "fireRate", "range"];
+  const STAR_UPGRADE_ORDER = ["sniperLaser"];
   const UPGRADES = {
     damage: {
       id: "damage",
@@ -135,6 +136,21 @@ MB.config = (function () {
       chains: [4, 5, 6],
       desc: "Weapons reach 12% farther per level",
       icon: "range"
+    },
+    sniperLaser: {
+      id: "sniperLaser",
+      name: "Sniper Laser",
+      unlockStars: 7500,
+      beamDuration: 2000,
+      beamTick: 200,
+      chains: [5, 6, 7],
+      levels: [
+        { damage: 10, range: 350, cooldown: 12000 },
+        { damage: 23, range: 500, cooldown: 9000 },
+        { damage: 24, range: 480, cooldown: 9000 }
+      ],
+      desc: "Dreadnoughts fire a sustained beam that melts one target",
+      icon: "sniperLaser"
     }
   };
   const UPGRADE_LEVELS = 3;
@@ -160,6 +176,7 @@ MB.config = (function () {
     ENEMY_UNITS: ENEMY_UNITS,
     ENEMY_ARMIES: ENEMY_ARMIES,
     UPGRADE_ORDER: UPGRADE_ORDER,
+    STAR_UPGRADE_ORDER: STAR_UPGRADE_ORDER,
     UPGRADES: UPGRADES,
     UPGRADE_LEVELS: UPGRADE_LEVELS,
     SCORE_WEIGHTS: SCORE_WEIGHTS
