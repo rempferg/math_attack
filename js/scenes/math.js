@@ -10,6 +10,7 @@ MB.Scenes.Math = new Phaser.Class({
   init: function (data) {
     data = data || {};
     this.mode = data.mode || "tier";
+    this.onExit = data.onExit || null;
     if (this.mode === "upg") {
       this.track = data.subject ? data.subject.replace("upg:", "") : (data.track || "damage");
       this.subject = "upg:" + this.track;
@@ -247,5 +248,6 @@ MB.Scenes.Math = new Phaser.Class({
       this.scene.stop();
       this.scene.resume("Base");
     }
+    if (this.onExit) this.onExit();
   }
 });
