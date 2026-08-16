@@ -48,8 +48,6 @@ MB.Scenes.Base = new Phaser.Class({
 
     this.attackBtn = null;
     this.buildAttack();
-
-    this.events.on("resume", this.refresh, this);
   },
 
   refresh: function () {
@@ -99,7 +97,7 @@ MB.Scenes.Base = new Phaser.Class({
         fontSize: "9px",
         onClick: (function () {
           MB.audio.click();
-          this.scene.run("Math", { tier: id, onExit: (function () { this.refresh(); }).bind(this) });
+          this.scene.run("Math", { tier: id });
           this.scene.pause();
         }).bind(this)
       }));

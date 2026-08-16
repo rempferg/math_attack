@@ -27,8 +27,6 @@ MB.Scenes.Lab = new Phaser.Class({
         MB.sceneGo(this, "Base");
       }.bind(this)
     });
-
-    this.events.on("resume", this.refresh, this);
   },
 
   refresh: function () {
