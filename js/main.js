@@ -36,6 +36,20 @@ window.MB = window.MB || {};
 
     window.game = new Phaser.Game(config);
 
+    function refreshScale() {
+      window.game.scale.refresh();
+    }
+
+    var resizeTimer;
+    window.addEventListener("resize", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(refreshScale, 150);
+    });
+    window.addEventListener("orientationchange", function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(refreshScale, 300);
+    });
+
     var fsBtn = document.getElementById("fs-btn");
     if (!fsBtn) return;
 
