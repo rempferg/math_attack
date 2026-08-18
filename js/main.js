@@ -10,7 +10,6 @@ window.MB = window.MB || {};
     height: C.HEIGHT,
     parent: "game",
     backgroundColor: "#050518",
-    transparent: true,
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,

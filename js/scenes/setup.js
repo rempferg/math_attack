@@ -9,6 +9,7 @@ MB.Scenes.Setup = new Phaser.Class({
 
   create: function () {
     const C = MB.config;
+    this.stars = MB.ui.addStars(this, 60);
     this.state = MB.save.load();
 
     MB.ui.addText(this, C.WIDTH / 2, 40, "SETUP YOUR MISSION", { fontSize: "26px", color: "#66c8ff" });
@@ -129,5 +130,7 @@ MB.Scenes.Setup = new Phaser.Class({
     MB.sceneGo(this, "Base");
   },
 
-  update: function () {}
+  update: function (_time, dt) {
+    MB.ui.updateStars(this.stars, dt);
+  }
 });
