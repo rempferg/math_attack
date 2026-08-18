@@ -33,7 +33,6 @@ MB.Scenes.Math = new Phaser.Class({
     this.particles = [];
     this.flash = null;
 
-    this.stars = MB.ui.addStars(this, 50);
     this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x000000, 0.72);
     MB.ui.setPageDark(0.72);
     this.events.on("shutdown", MB.ui.clearPageDark);
@@ -229,7 +228,6 @@ MB.Scenes.Math = new Phaser.Class({
   },
 
   update: function (_time, dt) {
-    MB.ui.updateStars(this.stars, dt);
     const dtSec = dt / 1000;
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];

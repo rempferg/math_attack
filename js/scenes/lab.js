@@ -163,7 +163,6 @@ MB.Scenes.Lab = new Phaser.Class({
         MB.audio.click();
         MB.audio.unlock();
         this.scene.run("Math", { subject: "upg:" + track, mode: "upg", chain: up.chains[level] });
-        this.scene.pause();
       }).bind(this)
     }));
   },
@@ -252,7 +251,6 @@ MB.Scenes.Lab = new Phaser.Class({
           MB.audio.click();
           MB.audio.unlock();
           this.scene.run("Math", { subject: "upg:" + track, mode: "upg", chain: up.chains[level] });
-          this.scene.pause();
         }).bind(this)
       }));
     }

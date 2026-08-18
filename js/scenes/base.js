@@ -97,7 +97,6 @@ MB.Scenes.Base = new Phaser.Class({
         onClick: (function () {
           MB.audio.click();
           this.scene.run("Math", { tier: id });
-          this.scene.pause();
         }).bind(this)
       }));
     }, this);
