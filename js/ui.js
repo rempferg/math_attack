@@ -117,6 +117,22 @@ MB.ui = (function () {
     return bar;
   }
 
+  function setPageDark(alpha) {
+    var el = document.getElementById("page-overlay");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "page-overlay";
+      el.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:#000;pointer-events:none;z-index:0;";
+      document.body.appendChild(el);
+    }
+    el.style.opacity = alpha;
+  }
+
+  function clearPageDark() {
+    var el = document.getElementById("page-overlay");
+    if (el) el.remove();
+  }
+
   function addPanel(scene, x, y, w, h, opts) {
     opts = opts || {};
     const g = scene.add.graphics();
@@ -133,6 +149,8 @@ MB.ui = (function () {
     addStars: addStars,
     updateStars: updateStars,
     addHpBar: addHpBar,
-    addPanel: addPanel
+    addPanel: addPanel,
+    setPageDark: setPageDark,
+    clearPageDark: clearPageDark
   };
 })();

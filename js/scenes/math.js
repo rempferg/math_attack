@@ -33,7 +33,10 @@ MB.Scenes.Math = new Phaser.Class({
     this.particles = [];
     this.flash = null;
 
+    this.stars = MB.ui.addStars(this, 50);
     this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x000000, 0.72);
+    MB.ui.setPageDark(0.72);
+    this.events.on("shutdown", MB.ui.clearPageDark);
 
     MB.ui.addPanel(this, C.WIDTH / 2, C.HEIGHT / 2, 620, 420, { fill: 0x111144, alpha: 0.97, border: 0x8899ff });
 
@@ -63,7 +66,7 @@ MB.Scenes.Math = new Phaser.Class({
     this.problemText = MB.ui.addText(this, C.WIDTH / 2, 211, "", { fontSize: "38px", color: "#ffffff" });
     this.feedbackText = MB.ui.addText(this, C.WIDTH / 2, 468, "", { fontSize: "13px", color: "#88ff88" });
 
-    MB.ui.addButton(this, C.WIDTH - 60, 30, 100, 34, "EXIT", {
+    MB.ui.addButton(this, 880, 30, 130, 36, "EXIT", {
       fill: 0x883333,
       fillOver: 0xaa4444,
       fontSize: "11px",
@@ -226,6 +229,7 @@ MB.Scenes.Math = new Phaser.Class({
   },
 
   update: function (_time, dt) {
+    MB.ui.updateStars(this.stars, dt);
     const dtSec = dt / 1000;
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
