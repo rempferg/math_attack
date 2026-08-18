@@ -242,7 +242,7 @@ MB.Scenes.Base = new Phaser.Class({
       });
       return;
     }
-    this.attackBtn = MB.ui.addButton(this, C.WIDTH / 2, 495, 240, 60, "ATTACK!", {
+    this.attackBtn = MB.ui.addButton(this, C.WIDTH / 2, 502, 240, 60, "ATTACK!", {
       fill: 0xbb3333,
       fillOver: 0xee4444,
       fontSize: "20px",

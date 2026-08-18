@@ -51,17 +51,17 @@ MB.Scenes.Math = new Phaser.Class({
       } else {
         nextLabel = "level " + (level + 1);
       }
-      this.titleText = MB.ui.addText(this, C.WIDTH / 2, 70, "UPGRADE: " + up.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });
-      this.countText = MB.ui.addText(this, 200, 106, "Level " + (level + 1) + " of " + C.UPGRADE_LEVELS + " (next: " + nextLabel + ")", { fontSize: "10px", color: "#88aadd", origin: 0 });
-      this.streakText = MB.ui.addText(this, 760, 106, "Chain: 0/" + this.chain, { fontSize: "11px", color: "#66c8ff", origin: 1 });
+      this.titleText = MB.ui.addText(this, C.WIDTH / 2, 86, "UPGRADE: " + up.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });
+      this.countText = MB.ui.addText(this, 200, 122, "Level " + (level + 1) + " of " + C.UPGRADE_LEVELS + " (next: " + nextLabel + ")", { fontSize: "10px", color: "#88aadd", origin: 0 });
+      this.streakText = MB.ui.addText(this, 760, 122, "Chain: 0/" + this.chain, { fontSize: "11px", color: "#66c8ff", origin: 1 });
     } else {
-      this.titleText = MB.ui.addText(this, C.WIDTH / 2, 70, "TRAIN " + this.unit.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });
-      this.countText = MB.ui.addText(this, 200, 106, "Fleet: \u00d7" + (this.state.army[this.tier] || 0), { fontSize: "11px", color: "#88aadd", origin: 0 });
-      this.streakText = MB.ui.addText(this, 760, 106, "Streak: 0", { fontSize: "11px", color: "#66c8ff", origin: 1 });
+      this.titleText = MB.ui.addText(this, C.WIDTH / 2, 86, "TRAIN " + this.unit.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });
+      this.countText = MB.ui.addText(this, 200, 122, "Fleet: \u00d7" + (this.state.army[this.tier] || 0), { fontSize: "11px", color: "#88aadd", origin: 0 });
+      this.streakText = MB.ui.addText(this, 760, 122, "Streak: 0", { fontSize: "11px", color: "#66c8ff", origin: 1 });
     }
 
-    this.problemText = MB.ui.addText(this, C.WIDTH / 2, 195, "", { fontSize: "38px", color: "#ffffff" });
-    this.feedbackText = MB.ui.addText(this, C.WIDTH / 2, 452, "", { fontSize: "13px", color: "#88ff88" });
+    this.problemText = MB.ui.addText(this, C.WIDTH / 2, 211, "", { fontSize: "38px", color: "#ffffff" });
+    this.feedbackText = MB.ui.addText(this, C.WIDTH / 2, 468, "", { fontSize: "13px", color: "#88ff88" });
 
     MB.ui.addButton(this, C.WIDTH - 60, 30, 100, 34, "EXIT", {
       fill: 0x883333,
@@ -76,7 +76,7 @@ MB.Scenes.Math = new Phaser.Class({
     const answers = [];
     const aW = 210;
     const aH = 70;
-    const positions = [[330, 265], [630, 265], [330, 355], [630, 355]];
+    const positions = [[330, 281], [630, 281], [330, 371], [630, 371]];
     const colors = [0x2a5ab0, 0x2a7ab0, 0x2a5ab0, 0x2a7ab0];
     positions.forEach(function (pos, i) {
       const btn = MB.ui.addButton(this, pos[0], pos[1], aW, aH, "", {
@@ -211,7 +211,7 @@ MB.Scenes.Math = new Phaser.Class({
   celebrate: function () {
     const C = MB.config;
     const cx = C.WIDTH / 2;
-    const cy = 195;
+    const cy = 211;
     const colors = [0xffd24d, 0x66e0ff, 0xff6666, 0x88ff88];
     for (let i = 0; i < 24; i++) {
       const g = this.add.graphics();
