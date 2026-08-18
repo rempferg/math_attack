@@ -10,10 +10,8 @@ MB.Scenes.Lab = new Phaser.Class({
   create: function () {
     const C = MB.config;
     this.state = MB.save.load();
-    this.starsBg = MB.ui.addStars(this, 70);
-
     this.titleText = MB.ui.addText(this, C.WIDTH / 2, 36, "WEAPONS LAB", { fontSize: "24px", color: "#66c8ff" });
-    MB.ui.addText(this, C.WIDTH / 2, 66, "Permanent fleet upgrades \u2014 elite math, get 4-6 in a row!", { fontSize: "9px", color: "#88aadd" });
+    MB.ui.addText(this, C.WIDTH / 2, 66, "Permanent fleet upgrades \u2014 elite math, get 4-8 in a row!", { fontSize: "9px", color: "#88aadd" });
 
     this.viewportY = 92;
     this.viewportH = 350;
@@ -307,7 +305,6 @@ MB.Scenes.Lab = new Phaser.Class({
   },
 
   update: function (time, dt) {
-    MB.ui.updateStars(this.starsBg, dt);
     var hue = (time * 0.05) % 360;
     this.titleText.setColor(this.hslHex(hue, 0.9, 0.65));
     this.titleText.setScale(1 + Math.sin(time * 0.003) * 0.04);

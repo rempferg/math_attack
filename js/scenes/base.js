@@ -10,8 +10,6 @@ MB.Scenes.Base = new Phaser.Class({
   create: function () {
     const C = MB.config;
     this.state = MB.save.load();
-    this.stars = MB.ui.addStars(this, 70);
-
     const baseG = this.add.graphics();
     MB.sprites.drawHomeBase(baseG, 55);
     baseG.setPosition(140, 400);
@@ -256,7 +254,6 @@ MB.Scenes.Base = new Phaser.Class({
   },
 
   update: function (time, dt) {
-    MB.ui.updateStars(this.stars, dt);
     for (let i = 0; i < this.fleetShips.length; i++) {
       const s = this.fleetShips[i];
       const y = s.baseY + Math.sin(time * 0.001 * s.freq * 10 + s.phase) * 4;

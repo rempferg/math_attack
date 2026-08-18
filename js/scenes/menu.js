@@ -12,11 +12,10 @@ MB.Scenes.Menu = new Phaser.Class({
   create: function () {
     const C = MB.config;
     if (!this.scene.isActive("Hud")) this.scene.launch("Hud");
-    this.stars = MB.ui.addStars(this, 90);
     MB.ui.addText(this, C.WIDTH / 2, 120, "MATH ATTACK", { fontSize: "44px", color: "#66c8ff", fontStyle: "bold", stroke: "#66c8ff", strokeThickness: 2 });
     MB.ui.addText(this, C.WIDTH / 2, 175, "Space Adventure", { fontSize: "18px", color: "#ffd24d" });
     MB.ui.addText(this, C.WIDTH / 2, 210, "Solve math. Build a fleet. Destroy the alien base.", { fontSize: "11px", color: "#aabbee" });
-    MB.ui.addText(this, C.WIDTH - 12, 16, "V9", { fontSize: "13px", color: "#6677aa", origin: 1 });
+    MB.ui.addText(this, C.WIDTH - 12, 16, "V10", { fontSize: "13px", color: "#6677aa", origin: 1 });
 
     const state = MB.save.load();
     const hasProgress = state.army.drone + state.army.fighter + state.army.cruiser + state.army.dreadnought > 0;
@@ -39,17 +38,15 @@ MB.Scenes.Menu = new Phaser.Class({
     }
     MB.ui.addText(this, C.WIDTH / 2, 395, status, { fontSize: "11px", color: "#88aadd" });
 
-    if (hasProgress) {
-      MB.ui.addButton(this, C.WIDTH / 2, 450, 200, 40, "RESET PROGRESS", {
-        fill: 0x883333,
-        fillOver: 0xaa4444,
-        fontSize: "11px",
-        onClick: function () {
-          MB.audio.click();
-          this.showResetConfirm();
-        }.bind(this)
-      });
-    }
+    MB.ui.addButton(this, C.WIDTH / 2, 450, 200, 40, "RESET PROGRESS", {
+      fill: 0x883333,
+      fillOver: 0xaa4444,
+      fontSize: "11px",
+      onClick: function () {
+        MB.audio.click();
+        this.showResetConfirm();
+      }.bind(this)
+    });
 
     MB.ui.addText(this, C.WIDTH / 2, 510, "For kids who love space and math \u2728", { fontSize: "9px", color: "#6677aa" });
   },
@@ -89,7 +86,5 @@ MB.Scenes.Menu = new Phaser.Class({
     this.confirmModal.add([overlay, panel, title, body, note, cancel, reset]);
   },
 
-  update: function (_time, dt) {
-    MB.ui.updateStars(this.stars, dt);
-  }
+  update: function () {}
 });

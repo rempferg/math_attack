@@ -13,7 +13,6 @@ MB.Scenes.Result = new Phaser.Class({
 
   create: function () {
     const C = MB.config;
-    this.stars = MB.ui.addStars(this, 50);
     const d = this.data;
     const victory = d.outcome === "victory";
 
@@ -47,7 +46,5 @@ MB.Scenes.Result = new Phaser.Class({
     });
   },
 
-  update: function (_time, dt) {
-    MB.ui.updateStars(this.stars, dt);
-  }
+  update: function () {}
 });

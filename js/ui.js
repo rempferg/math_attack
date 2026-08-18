@@ -76,28 +76,6 @@ MB.ui = (function () {
     return scene.add.text(x, y, label, style).setOrigin(opts.origin != null ? opts.origin : 0.5);
   }
 
-  function addStars(scene, count) {
-    const stars = [];
-    for (let i = 0; i < count; i++) {
-      const g = scene.add.graphics();
-      const a = 0.3 + Math.random() * 0.7;
-      const size = Math.random() < 0.15 ? 2 : 1;
-      g.fillStyle(0xffffff, a);
-      g.fillCircle(Math.random() * MB.config.WIDTH, Math.random() * MB.config.HEIGHT, size);
-      stars.push({ g: g, x: g.x, y: g.y, speed: 0.1 + Math.random() * 0.5 });
-    }
-    return stars;
-  }
-
-  function updateStars(stars, dt) {
-    for (let i = 0; i < stars.length; i++) {
-      const s = stars[i];
-      s.x += s.speed * dt * 0.02;
-      if (s.x > MB.config.WIDTH + 5) s.x = -5;
-      s.g.setPosition(s.x, s.y);
-    }
-  }
-
   function addHpBar(scene, x, y, w, h) {
     const bar = scene.add.container(x, y);
     const bg = scene.add.graphics();
@@ -130,8 +108,6 @@ MB.ui = (function () {
   return {
     addButton: addButton,
     addText: addText,
-    addStars: addStars,
-    updateStars: updateStars,
     addHpBar: addHpBar,
     addPanel: addPanel
   };

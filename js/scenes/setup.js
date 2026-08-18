@@ -9,7 +9,6 @@ MB.Scenes.Setup = new Phaser.Class({
 
   create: function () {
     const C = MB.config;
-    this.stars = MB.ui.addStars(this, 60);
     this.state = MB.save.load();
 
     MB.ui.addText(this, C.WIDTH / 2, 40, "SETUP YOUR MISSION", { fontSize: "26px", color: "#66c8ff" });
@@ -19,7 +18,7 @@ MB.Scenes.Setup = new Phaser.Class({
     this.opButtons = {};
     const opW = 178;
     const gap = 16;
-    const startX = C.WIDTH / 2 - (opW * 2 + gap) / 2;
+    const startX = C.WIDTH / 2 - (opW + gap) / 2;
     C.OPS.forEach(function (op, i) {
       const x = startX + (i % 2) * (opW + gap);
       const y = 136 + Math.floor(i / 2) * 58;
@@ -46,7 +45,7 @@ MB.Scenes.Setup = new Phaser.Class({
 
     this.diffButtons = {};
     const diffW = 130;
-    const dStartX = C.WIDTH / 2 - (diffW * 3 + 20) / 2;
+    const dStartX = C.WIDTH / 2 - (diffW + 10);
     C.DIFFICULTIES.forEach(function (d, i) {
       const x = dStartX + i * (diffW + 10);
       this.diffButtons[d] = MB.ui.addButton(this, x, 330, diffW, 44, C.DIFFICULTY_NAMES[d], {
@@ -65,16 +64,7 @@ MB.Scenes.Setup = new Phaser.Class({
     const total = this.state.army.drone + this.state.army.fighter + this.state.army.cruiser + this.state.army.dreadnought;
     this.fleetInfo = MB.ui.addText(this, C.WIDTH / 2, 428, "Mission " + (this.state.mission || 1) + "   |   Fleet: " + total + " ships   |   Battles won: " + this.state.battlesWon + "   |   Base destroyed: " + (this.state.baseDestroyed ? "YES" : "not yet"), { fontSize: "10px", color: "#88aadd" });
 
-    MB.ui.addButton(this, C.WIDTH / 2 - 130, 488, 220, 48, "BACK", {
-      fill: 0x883333,
-      fillOver: 0xaa4444,
-      fontSize: "15px",
-      onClick: function () {
-        MB.audio.click();
-        MB.sceneGo(this, "Menu");
-      }.bind(this)
-    });
-    MB.ui.addButton(this, C.WIDTH / 2 + 130, 488, 220, 48, "START", {
+    MB.ui.addButton(this, C.WIDTH / 2, 488, 260, 48, "CONTINUE", {
       fill: 0x2a9d3f,
       fillOver: 0x3ac24f,
       fontSize: "15px",
@@ -139,7 +129,5 @@ MB.Scenes.Setup = new Phaser.Class({
     MB.sceneGo(this, "Base");
   },
 
-  update: function (_time, dt) {
-    MB.ui.updateStars(this.stars, dt);
-  }
+  update: function () {}
 });
