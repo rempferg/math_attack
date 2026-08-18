@@ -40,9 +40,19 @@ MB.Scenes.Math = new Phaser.Class({
     if (this.mode === "upg") {
       const up = C.UPGRADES[this.track];
       const level = this.state.upgrades[this.track] || 0;
-      const next = Math.round(up.perLevel * (level + 1) * 100);
+      var nextLabel;
+      if (up.perLevel) {
+        nextLabel = "+" + Math.round(up.perLevel * (level + 1) * 100) + "%";
+      } else if (up.levels && up.levels[level]) {
+        var nl = up.levels[level];
+        nextLabel = nl.damage + " dmg";
+        if (nl.aoeRadius) nextLabel += " · AOE " + nl.aoeRadius + "px";
+        if (nl.range) nextLabel += " · range " + nl.range;
+      } else {
+        nextLabel = "level " + (level + 1);
+      }
       this.titleText = MB.ui.addText(this, C.WIDTH / 2, 70, "UPGRADE: " + up.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });
-      this.countText = MB.ui.addText(this, 200, 106, "Level " + (level + 1) + " of " + C.UPGRADE_LEVELS + " (next: +" + next + "%)", { fontSize: "10px", color: "#88aadd", origin: 0 });
+      this.countText = MB.ui.addText(this, 200, 106, "Level " + (level + 1) + " of " + C.UPGRADE_LEVELS + " (next: " + nextLabel + ")", { fontSize: "10px", color: "#88aadd", origin: 0 });
       this.streakText = MB.ui.addText(this, 760, 106, "Chain: 0/" + this.chain, { fontSize: "11px", color: "#66c8ff", origin: 1 });
     } else {
       this.titleText = MB.ui.addText(this, C.WIDTH / 2, 70, "TRAIN " + this.unit.name.toUpperCase(), { fontSize: "16px", color: "#ffd24d" });

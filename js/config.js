@@ -111,7 +111,7 @@ MB.config = (function () {
   };
 
   const UPGRADE_ORDER = ["damage", "fireRate", "range"];
-  const STAR_UPGRADE_ORDER = ["sniperLaser"];
+  const STAR_UPGRADE_ORDER = ["sniperLaser", "torpedoLauncher"];
   const UPGRADES = {
     damage: {
       id: "damage",
@@ -151,6 +151,20 @@ MB.config = (function () {
       ],
       desc: "Dreadnoughts fire a sustained beam that melts one target",
       icon: "sniperLaser"
+    },
+    torpedoLauncher: {
+      id: "torpedoLauncher",
+      name: "Torpedo Launcher",
+      unlockStars: 50000,
+      chains: [6, 7, 8],
+      initialDelay: 4,
+      levels: [
+        { damage: 40, aoeRadius: 60, clusterRadius: 100, cooldown: 10000 },
+        { damage: 40, aoeRadius: 70, clusterRadius: 130, cooldown: 8000 },
+        { damage: 40, aoeRadius: 80, clusterRadius: 160, cooldown: 7000 }
+      ],
+      desc: "Cruisers fire homing torpedoes at enemy clusters",
+      icon: "torpedoLauncher"
     }
   };
   const UPGRADE_LEVELS = 3;

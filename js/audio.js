@@ -131,6 +131,15 @@ MB.audio = (function () {
           osc.stop(now + 0.12);
         }
       };
+    },
+    torpedoLaunch: function () {
+      tone(400, 0.18, "sine", 0.12, 100);
+      noise(0.08, 0.15);
+    },
+    torpedoExplode: function () {
+      noise(0.5, 0.5);
+      tone(60, 0.45, "sawtooth", 0.18, 30);
+      tone(100, 0.3, "sine", 0.12, 50);
     }
   };
 })();

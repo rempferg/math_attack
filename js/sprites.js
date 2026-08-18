@@ -189,6 +189,55 @@ MB.sprites = (function () {
     g.fillCircle(12, -8, 6);
   }
 
+  function drawTorpedo(g, level) {
+    g.clear();
+    level = level || 1;
+    var bodyLen = 7 + level;
+    var bodyW = 2 + level * 0.5;
+    g.fillStyle(0xffaa33, 0.2 + level * 0.08);
+    g.fillCircle(bodyLen * 0.3, 0, bodyW + 3);
+    g.fillStyle(0xffdd44, 1);
+    g.fillRoundedRect(-bodyLen, -bodyW, bodyLen * 2, bodyW * 2, bodyW);
+    g.fillStyle(0xffffff, 0.9);
+    g.fillRoundedRect(-bodyLen + 2, -bodyW * 0.5, bodyLen * 1.2, bodyW, 1);
+    g.fillStyle(0x66ccff, 1);
+    g.fillCircle(bodyLen, 0, bodyW * 0.6);
+    g.fillStyle(0x66ccff, 0.3);
+    g.fillCircle(bodyLen + 2, 0, bodyW + 1);
+    g.fillStyle(0xff6622, 0.7);
+    g.fillTriangle(-bodyLen - 2, -bodyW - 1, -bodyLen - 2, bodyW + 1, -bodyLen - 4 - level, 0);
+  }
+
+  function drawTorpedoExplosion(g, level, radius) {
+    g.clear();
+    level = level || 1;
+    radius = radius || 60;
+    var rings = 3 + level;
+    for (var i = rings; i >= 1; i--) {
+      var r = radius * (i / rings);
+      var alpha = 0.15 + (rings - i) * 0.1;
+      var color = i <= 1 ? 0xffffff : (i <= 2 ? 0xffaa33 : 0xff4400);
+      g.lineStyle(2 + (rings - i), color, alpha);
+      g.strokeCircle(0, 0, r);
+    }
+    g.fillStyle(0xffcc33, 0.3);
+    g.fillCircle(0, 0, radius * 0.5);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillCircle(0, 0, radius * 0.15);
+  }
+
+  function drawTorpedoIcon(g) {
+    g.clear();
+    g.fillStyle(0xffdd44, 1);
+    g.fillRoundedRect(-10, -4, 20, 8, 3);
+    g.fillStyle(0x66ccff, 1);
+    g.fillCircle(10, 0, 3);
+    g.fillStyle(0xff6622, 0.7);
+    g.fillTriangle(-10, -5, -10, 5, -14, 0);
+    g.fillStyle(0xffdd44, 0.3);
+    g.fillCircle(-12, 0, 4);
+  }
+
   function drawLockIcon(g) {
     g.clear();
     g.fillStyle(0x666688, 1);
@@ -199,5 +248,5 @@ MB.sprites = (function () {
     g.fillCircle(0, 3, 2);
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawLockIcon: drawLockIcon };
+  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon };
 })();

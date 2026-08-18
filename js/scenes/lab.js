@@ -184,7 +184,13 @@ MB.Scenes.Lab = new Phaser.Class({
 
     var icon = this.add.graphics();
     if (unlocked) {
-      MB.sprites.drawSniperIcon(icon);
+      if (track === "sniperLaser") {
+        MB.sprites.drawSniperIcon(icon);
+      } else if (track === "torpedoLauncher") {
+        MB.sprites.drawTorpedoIcon(icon);
+      } else {
+        MB.sprites.drawLockIcon(icon);
+      }
     } else {
       MB.sprites.drawLockIcon(icon);
     }
@@ -260,6 +266,10 @@ MB.Scenes.Lab = new Phaser.Class({
     if (track === "sniperLaser") {
       var lv = MB.config.UPGRADES.sniperLaser.levels[level - 1];
       return lv.damage + " dmg/tick \u00b7 range " + lv.range;
+    }
+    if (track === "torpedoLauncher") {
+      var lv = MB.config.UPGRADES.torpedoLauncher.levels[level - 1];
+      return lv.damage + " dmg/torp \u00b7 AOE " + lv.aoeRadius + "px";
     }
     return "";
   },

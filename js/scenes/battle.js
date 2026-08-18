@@ -25,6 +25,7 @@ MB.Scenes.Battle = new Phaser.Class({
     this.playerUnits = [];
     this.enemyUnits = [];
     this.projectiles = [];
+    this.torpedoes = [];
     this.damageTexts = [];
     this.shotCounter = 0;
     this.playerLost = { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 };
@@ -86,6 +87,9 @@ MB.Scenes.Battle = new Phaser.Class({
             cooldown: 0,
             gfx: null,
             soundHandle: null
+          } : null,
+          torpedo: id === "cruiser" && (this.upg.torpedoLauncher || 0) > 0 ? {
+            cooldown: Math.random() * C.UPGRADES.torpedoLauncher.initialDelay * 1000
           } : null
         });
         idx++;
@@ -250,6 +254,161 @@ MB.Scenes.Battle = new Phaser.Class({
     }
   },
 
+  findEnemyClusters: function (count) {
+    var C = MB.config;
+    var tpLevel = this.upg.torpedoLauncher || 0;
+    var lvl = C.UPGRADES.torpedoLauncher.levels[tpLevel - 1];
+    var clusterR = lvl.clusterRadius;
+    var living = [];
+    for (var i = 0; i < this.enemyUnits.length; i++) {
+      var e = this.enemyUnits[i];
+      if (!e.dead && e.hp > 0) living.push(e);
+    }
+    if (living.length === 0) return [];
+    var density = [];
+    for (var i = 0; i < living.length; i++) {
+      var count = 0;
+      var sx = 0, sy = 0;
+      for (var j = 0; j < living.length; j++) {
+        if (i === j) continue;
+        var d = this.dist(living[i].x, living[i].y, living[j].x, living[j].y);
+        if (d <= clusterR) {
+          count++;
+          sx += living[j].x;
+          sy += living[j].y;
+        }
+      }
+      density.push({
+        x: (sx + living[i].x) / (count + 1),
+        y: (sy + living[i].y) / (count + 1),
+        count: count
+      });
+    }
+    density.sort(function (a, b) { return b.count - a.count; });
+    var result = [];
+    for (var i = 0; i < density.length && result.length < count; i++) {
+      var tooClose = false;
+      for (var j = 0; j < result.length; j++) {
+        if (this.dist(density[i].x, density[i].y, result[j].x, result[j].y) < clusterR * 0.5) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (!tooClose) result.push({ x: density[i].x, y: density[i].y });
+    }
+    while (result.length < count && living.length > 0) {
+      result.push({ x: living[0].x, y: living[0].y });
+    }
+    return result;
+  },
+
+  fireTorpedoes: function (u) {
+    var C = MB.config;
+    var tpLevel = this.upg.torpedoLauncher || 0;
+    var lvl = C.UPGRADES.torpedoLauncher.levels[tpLevel - 1];
+    var clusters = this.findEnemyClusters(3);
+    if (clusters.length === 0) {
+      u.torpedo.cooldown = 2000;
+      return false;
+    }
+    MB.audio.torpedoLaunch();
+    var target = clusters[0];
+    var g = this.add.graphics();
+    MB.sprites.drawTorpedo(g, tpLevel);
+    g.setPosition(u.x, u.y);
+    this.torpedoes.push({
+      g: g,
+      x: u.x, y: u.y,
+      startX: u.x, startY: u.y,
+      offsetMag: 60,
+      offsetSign: 1,
+      targetX: target.x, targetY: target.y,
+      delay: 0,
+      progress: 0,
+      speed: 0.6,
+      damage: lvl.damage,
+      aoeRadius: lvl.aoeRadius,
+      side: "player"
+    });
+    u.torpedo.cooldown = lvl.cooldown;
+    return true;
+  },
+
+  updateTorpedoes: function (dtSec) {
+    var survivors = [];
+    for (var i = 0; i < this.torpedoes.length; i++) {
+      var t = this.torpedoes[i];
+      if (t.delay > 0) {
+        t.delay -= dtSec;
+        survivors.push(t);
+        continue;
+      }
+      var nearE = null;
+      var nearD = Infinity;
+      for (var j = 0; j < this.enemyUnits.length; j++) {
+        var e = this.enemyUnits[j];
+        if (e.dead || e.hp <= 0) continue;
+        var d = this.dist(t.targetX, t.targetY, e.x, e.y);
+        if (d < nearD) { nearD = d; nearE = e; }
+      }
+      if (nearE) {
+        t.targetX = nearE.x;
+        t.targetY = nearE.y;
+      }
+      var mx = (t.startX + t.targetX) / 2;
+      var my = (t.startY + t.targetY) / 2;
+      var ddx = t.targetX - t.startX;
+      var ddy = t.targetY - t.startY;
+      var len = Math.sqrt(ddx * ddx + ddy * ddy) || 1;
+      var nnx = -ddy / len;
+      var nny = ddx / len;
+      var controlX = mx + nnx * t.offsetMag * t.offsetSign;
+      var controlY = my + nny * t.offsetMag * t.offsetSign;
+      t.progress += t.speed * dtSec;
+      if (t.progress >= 1) {
+        var tx = t.targetX;
+        var ty = t.targetY;
+        for (var j = 0; j < this.enemyUnits.length; j++) {
+          var e = this.enemyUnits[j];
+          if (e.dead || e.hp <= 0) continue;
+          var d = this.dist(tx, ty, e.x, e.y);
+          if (d <= t.aoeRadius) {
+            this.hit(e, t.damage);
+          }
+        }
+        if (this.base.hp > 0 && this.dist(tx, ty, this.base.x, this.base.y) <= t.aoeRadius) {
+          this.hit(this.base, t.damage);
+        }
+        var expG = this.add.graphics();
+        MB.sprites.drawTorpedoExplosion(expG, this.upg.torpedoLauncher || 1, t.aoeRadius);
+        expG.setPosition(tx, ty);
+        this.tweens.add({
+          targets: expG,
+          scaleX: 1.5,
+          scaleY: 1.5,
+          alpha: 0,
+          duration: 400,
+          onComplete: function () { expG.destroy(); }
+        });
+        MB.audio.torpedoExplode();
+        t.g.destroy();
+      } else {
+        var p = t.progress;
+        var oneMinusT = 1 - p;
+        t.x = oneMinusT * oneMinusT * t.startX + 2 * oneMinusT * p * controlX + p * p * t.targetX;
+        t.y = oneMinusT * oneMinusT * t.startY + 2 * oneMinusT * p * controlY + p * p * t.targetY;
+        t.g.setPosition(t.x, t.y);
+        var future = Math.min(1, p + 0.05);
+        var fm = 1 - future;
+        var fx = fm * fm * t.startX + 2 * fm * future * controlX + future * future * t.targetX;
+        var fy = fm * fm * t.startY + 2 * fm * future * controlY + future * future * t.targetY;
+        t.g.setRotation(Math.atan2(fy - t.y, fx - t.x));
+        survivors.push(t);
+      }
+    }
+    this.torpedoes = survivors;
+  },
+
   nearestTarget: function (u) {
     const C = MB.config;
     const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits;
@@ -290,6 +449,7 @@ MB.Scenes.Battle = new Phaser.Class({
 
     this.updateUnits(time, dtSec);
     this.updateProjectiles(dtSec);
+    this.updateTorpedoes(dtSec);
     this.updateSniperBeams(dtSec);
     this.checkEnd();
   },
@@ -303,13 +463,19 @@ MB.Scenes.Battle = new Phaser.Class({
       const nt = this.nearestTarget(u);
       if (!nt.target) continue;
       u.cooldown = Math.max(0, u.cooldown - dtSec * 1000);
+      if (u.torpedo) {
+        u.torpedo.cooldown = Math.max(0, u.torpedo.cooldown - dtSec * 1000);
+      }
 
-      if (nt.distance <= u.range) {
-        if (u.cooldown <= 0) {
-          this.fire(u, nt.target);
-          u.cooldown = u.cooldownMax;
-        }
-      } else {
+      if (u.torpedo && u.torpedo.cooldown <= 0) {
+        this.fireTorpedoes(u);
+      }
+
+      if (nt.distance <= u.range && u.cooldown <= 0) {
+        this.fire(u, nt.target);
+        u.cooldown = u.cooldownMax;
+      }
+      if (nt.distance > u.range) {
         let nx = u.x;
         let ny = u.y;
         const dx = nt.target.x - u.x;
@@ -443,7 +609,7 @@ MB.Scenes.Battle = new Phaser.Class({
     const enemyAlive = this.enemyUnits.filter(function (u) { return !u.dead; }).length;
     if (enemyAlive === 0 && this.base.hp <= 0) {
       this.endBattle(true);
-    } else if (playerAlive === 0) {
+    } else if (playerAlive === 0 && this.projectiles.length === 0 && this.torpedoes.length === 0) {
       this.endBattle(false);
     }
   },
