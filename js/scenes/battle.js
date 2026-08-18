@@ -443,6 +443,7 @@ MB.Scenes.Battle = new Phaser.Class({
   },
 
   update: function (time, dt) {
+    MB.ui.updateStars(this.stars, dt);
     if (this.ended) return;
     const dtSec = dt / 1000;
 
