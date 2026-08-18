@@ -17,7 +17,7 @@ MB.Scenes.Battle = new Phaser.Class({
     this.upg = this.state.upgrades || {};
     this.power = Math.max(this.upg.damage || 0, this.upg.fireRate || 0, this.upg.range || 0);
 
-    this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x0a0a1e, 1);
+    this.add.rectangle(C.WIDTH / 2, C.HEIGHT / 2, C.WIDTH, C.HEIGHT, 0x050518, 1);
     this.stars = MB.ui.addStars(this, 50);
     MB.ui.addText(this, C.WIDTH / 2, 25, "FLEET vs ALIENS", { fontSize: "20px", color: "#ffffff" });
 
