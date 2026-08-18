@@ -42,7 +42,7 @@ MB.Scenes.Base = new Phaser.Class({
       });
     }
 
-    this.enemyIntel = MB.ui.addText(this, C.WIDTH / 2, 60, "", { fontSize: "10px", color: "#ff7ad9" });
+    this.enemyIntel = MB.ui.addText(this, C.WIDTH / 2, 68, "", { fontSize: "10px", color: "#ff7ad9" });
     this.buildArmory();
     this.buildFleet();
 
@@ -80,7 +80,7 @@ MB.Scenes.Base = new Phaser.Class({
     }
     this.buildEnemyIntel();
 
-    const container = this.add.container(680, 120);
+    const container = this.add.container(680, 128);
 
     const BAND_COLOR = { easy: "#88ff88", medium: "#ffd24d", hard: "#ff9466", veryHard: "#ff6666" };
     const tiers = C.CAP_TIERS[this.state.settings.difficulty] || ["drone"];
@@ -114,7 +114,7 @@ MB.Scenes.Base = new Phaser.Class({
     }
     const container = this.add.container(0, 0);
     this.fleetShips = [];
-    container.add(MB.ui.addText(this, 15, 72, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa", origin: 0, align: "left" }));
+    container.add(MB.ui.addText(this, 15, 110, "Solve problems to train ships.\nHarder problems = stronger ships.", { fontSize: "9px", color: "#6677aa", origin: 0, align: "left" }));
 
     const counts = {};
     let total = 0;

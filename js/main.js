@@ -12,7 +12,8 @@ window.MB = window.MB || {};
     backgroundColor: "#050518",
     scale: {
       mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+      fullscreenTarget: "#game"
     },
     scene: [
       MB.Scenes.Menu,
@@ -26,25 +27,31 @@ window.MB = window.MB || {};
     ]
   };
 
-  window.game = new Phaser.Game(config);
+  document.fonts.ready.then(function () {
+    return document.fonts.load("16px \"Press Start 2P\"");
+  }).then(function () {
+    var probe = document.createElement("canvas").getContext("2d");
+    probe.font = "16px \"Press Start 2P\"";
+    probe.fillText(".", 0, 0);
 
-  const gameEl = document.getElementById("game");
+    window.game = new Phaser.Game(config);
 
-  function fit() {
-    if (!gameEl) return;
-    const h = window.innerHeight;
-    if (gameEl.style.height === h + "px") return;
-    gameEl.style.height = h + "px";
-    if (window.game && window.game.scale) {
-      try {
-        window.game.scale.refresh();
-      } catch (e) { /* not booted yet */ }
+    var fsBtn = document.getElementById("fs-btn");
+    if (!fsBtn) return;
+
+    if (document.fullscreenEnabled) {
+      fsBtn.addEventListener("click", function () {
+        MB.audio.click();
+        window.game.scale.toggleFullscreen();
+      });
+      window.game.scale.on(Phaser.Scale.Events.ENTER_FULLSCREEN, function () {
+        fsBtn.title = "Exit fullscreen";
+      });
+      window.game.scale.on(Phaser.Scale.Events.EXIT_FULLSCREEN, function () {
+        fsBtn.title = "Fullscreen";
+      });
+    } else {
+      fsBtn.style.display = "none";
     }
-  }
-
-  window.addEventListener("resize", fit);
-  window.addEventListener("orientationchange", function () {
-    window.setTimeout(fit, 200);
   });
-  fit();
 })();

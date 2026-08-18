@@ -1,3 +1,9 @@
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("fonts/PressStart2P.woff2") format("woff2");
+  font-display: swap;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -15,9 +21,34 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 #game canvas {
   image-rendering: pixelated;
   border-radius: 6px;
+}
+
+#fs-btn {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  z-index: 9999;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: 2px solid #6677aa;
+  background: rgba(17, 17, 51, 0.75);
+  color: #aabbdd;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+#fs-btn:hover {
+  background: rgba(34, 51, 102, 0.9);
+  border-color: #88aaee;
 }
