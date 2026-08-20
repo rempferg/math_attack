@@ -111,7 +111,7 @@ MB.config = (function () {
   };
 
   const UPGRADE_ORDER = ["damage", "fireRate", "range"];
-  const STAR_UPGRADE_ORDER = ["sniperLaser", "torpedoLauncher"];
+  const STAR_UPGRADE_ORDER = ["sniperLaser", "torpedoLauncher", "invisibility"];
   const UPGRADES = {
     damage: {
       id: "damage",
@@ -165,6 +165,19 @@ MB.config = (function () {
       ],
       desc: "Cruisers fire homing torpedoes at enemy clusters",
       icon: "torpedoLauncher"
+    },
+    invisibility: {
+      id: "invisibility",
+      name: "Invisibility",
+      unlockStars: 200000,
+      chains: [5, 6, 7],
+      levels: [
+        { duration: 5 },
+        { duration: 7 },
+        { duration: 9 }
+      ],
+      desc: "Scout ships go invisible once per battle \u2014 enemies cannot target them",
+      icon: "invisibility"
     }
   };
   const UPGRADE_LEVELS = 3;

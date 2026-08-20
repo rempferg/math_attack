@@ -9,6 +9,8 @@ MB.Scenes.Battle = new Phaser.Class({
 
   init: function () {
     this.ended = false;
+    this.invisTimer = 0;
+    this.invisUsed = false;
   },
 
   create: function () {
@@ -44,6 +46,8 @@ MB.Scenes.Battle = new Phaser.Class({
 
     MB.ui.addText(this, 60, 55, "Your fleet: " + this.playerUnits.length, { fontSize: "10px", color: "#66c8ff", origin: 0 });
     MB.ui.addText(this, C.WIDTH - 60, 55, "Alien defenders: " + (this.enemyUnits.length + 1), { fontSize: "10px", color: "#ff7ad9", origin: 1 });
+
+    this.buildStealthButton();
   },
 
   spawnPlayers: function () {
@@ -408,6 +412,81 @@ MB.Scenes.Battle = new Phaser.Class({
     this.torpedoes = survivors;
   },
 
+  buildStealthButton: function () {
+    var C = MB.config;
+    var lvl = this.upg.invisibility || 0;
+    var btnW = 260;
+    var btnH = 44;
+    this.stealthBtnW = btnW;
+    this.stealthBtnH = btnH;
+    this.stealthBtn = MB.ui.addButton(this, C.WIDTH / 2, C.HEIGHT - 30, btnW, btnH, "INVISIBILITY", {
+      fill: lvl > 0 ? 0x1a3366 : 0x333344,
+      fillOver: lvl > 0 ? 0x224488 : 0x333344,
+      textColor: lvl > 0 ? "#7cc8ff" : "#556677",
+      fontSize: "11px",
+      onClick: function () {
+        if (!lvl || this.invisUsed || this.ended) return;
+        MB.audio.click();
+        this.activateInvisibility();
+      }.bind(this)
+    });
+    if (lvl <= 0) {
+      this.stealthBtn.setAlpha(0.4);
+    }
+  },
+
+  activateInvisibility: function () {
+    var C = MB.config;
+    var lvl = this.upg.invisibility || 1;
+    var duration = C.UPGRADES.invisibility.levels[lvl - 1].duration;
+    this.invisUsed = true;
+    this.invisTimer = duration;
+    this.invisTotalDuration = duration;
+    for (var i = 0; i < this.playerUnits.length; i++) {
+      var u = this.playerUnits[i];
+      if (u.dead || u.kind !== "drone") continue;
+      u.invisible = true;
+      u.g.setAlpha(0.2);
+      u.bar.setAlpha(0.2);
+    }
+    this.stealthBtn.list[2].disableInteractive();
+    this.stealthProgress = this.add.graphics();
+  },
+
+  updateInvisibility: function (dtSec) {
+    if (this.invisTimer <= 0) return;
+    var C = MB.config;
+    this.invisTimer -= dtSec;
+    var cx = C.WIDTH / 2;
+    var cy = C.HEIGHT - 30;
+    var h = this.stealthBtnH;
+    if (this.invisTimer <= 0) {
+      this.invisTimer = 0;
+      for (var i = 0; i < this.playerUnits.length; i++) {
+        var u = this.playerUnits[i];
+        if (u.dead || u.kind !== "drone") continue;
+        u.invisible = false;
+        u.g.setAlpha(1);
+        u.bar.setAlpha(1);
+      }
+      if (this.stealthProgress) {
+        this.stealthProgress.clear();
+        this.stealthProgress.fillStyle(0x555566, 0.85);
+        this.stealthProgress.fillRoundedRect(cx - this.stealthBtnW / 2, cy - h / 2, this.stealthBtnW, h, 10);
+        this.stealthProgress.lineStyle(3, 0xffffff, 1);
+        this.stealthProgress.strokeRoundedRect(cx - this.stealthBtnW / 2, cy - h / 2, this.stealthBtnW, h, 10);
+      }
+    } else if (this.stealthProgress) {
+      var progress = 1 - (this.invisTimer / this.invisTotalDuration);
+      var w = this.stealthBtnW * progress;
+      this.stealthProgress.clear();
+      this.stealthProgress.fillStyle(0x555566, 0.85);
+      this.stealthProgress.fillRoundedRect(cx - this.stealthBtnW / 2, cy - h / 2, w, h, 10);
+      this.stealthProgress.lineStyle(3, 0xffffff, 1);
+      this.stealthProgress.strokeRoundedRect(cx - this.stealthBtnW / 2, cy - h / 2, this.stealthBtnW, h, 10);
+    }
+  },
+
   nearestTarget: function (u) {
     const C = MB.config;
     const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits;
@@ -416,6 +495,7 @@ MB.Scenes.Battle = new Phaser.Class({
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i];
       if (e.dead) continue;
+      if (e.invisible) continue;
       const d = this.dist(u.x, u.y, e.x, e.y);
       if (d < bd) { bd = d; best = e; }
     }
@@ -451,6 +531,7 @@ MB.Scenes.Battle = new Phaser.Class({
     this.updateProjectiles(dtSec);
     this.updateTorpedoes(dtSec);
     this.updateSniperBeams(dtSec);
+    this.updateInvisibility(dtSec);
     this.checkEnd();
   },
 

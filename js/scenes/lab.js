@@ -186,6 +186,8 @@ MB.Scenes.Lab = new Phaser.Class({
         MB.sprites.drawSniperIcon(icon);
       } else if (track === "torpedoLauncher") {
         MB.sprites.drawTorpedoIcon(icon);
+      } else if (track === "invisibility") {
+        MB.sprites.drawInvisibilityIcon(icon);
       } else {
         MB.sprites.drawLockIcon(icon);
       }
@@ -267,6 +269,10 @@ MB.Scenes.Lab = new Phaser.Class({
     if (track === "torpedoLauncher") {
       var lv = MB.config.UPGRADES.torpedoLauncher.levels[level - 1];
       return lv.damage + " dmg/torp \u00b7 AOE " + lv.aoeRadius + "px";
+    }
+    if (track === "invisibility") {
+      var lv = MB.config.UPGRADES.invisibility.levels[level - 1];
+      return lv.duration + "s invisibility";
     }
     return "";
   },

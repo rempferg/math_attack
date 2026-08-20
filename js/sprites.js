@@ -248,5 +248,15 @@ MB.sprites = (function () {
     g.fillCircle(0, 3, 2);
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon };
+  function drawInvisibilityIcon(g) {
+    g.clear();
+    g.fillStyle(0x7cc8ff, 0.2);
+    g.fillTriangle(10, 0, -6, -7, -6, 7);
+    g.fillStyle(0x7cc8ff, 0.5);
+    g.fillTriangle(8, 0, -5, -5, -5, 5);
+    g.fillStyle(0x7cc8ff, 1);
+    g.fillTriangle(6, 0, -4, -3.5, -4, 3.5);
+  }
+
+  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon };
 })();
