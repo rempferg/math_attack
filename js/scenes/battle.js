@@ -415,6 +415,7 @@ MB.Scenes.Battle = new Phaser.Class({
   buildStealthButton: function () {
     var C = MB.config;
     var lvl = this.upg.invisibility || 0;
+    if (lvl <= 0) return;
     var btnW = 260;
     var btnH = 44;
     this.stealthBtnW = btnW;
@@ -430,9 +431,6 @@ MB.Scenes.Battle = new Phaser.Class({
         this.activateInvisibility();
       }.bind(this)
     });
-    if (lvl <= 0) {
-      this.stealthBtn.setAlpha(0.4);
-    }
   },
 
   activateInvisibility: function () {
