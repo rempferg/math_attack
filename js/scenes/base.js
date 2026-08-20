@@ -28,18 +28,16 @@ MB.Scenes.Base = new Phaser.Class({
       }.bind(this)
     });
 
-    if ((this.state.battlesWon || 0) >= 1) {
-      MB.ui.addButton(this, 735, 30, 130, 36, "WEAPONS LAB", {
-        fill: 0x334488,
-        fillOver: 0x5566cc,
-        fontSize: "9px",
-        onClick: function () {
-          MB.audio.click();
-          MB.audio.unlock();
-          MB.sceneGo(this, "Lab");
-        }.bind(this)
-      });
-    }
+    MB.ui.addButton(this, 735, 30, 130, 36, "WEAPONS LAB", {
+      fill: 0x334488,
+      fillOver: 0x5566cc,
+      fontSize: "9px",
+      onClick: function () {
+        MB.audio.click();
+        MB.audio.unlock();
+        MB.sceneGo(this, "Lab");
+      }.bind(this)
+    });
 
     this.enemyIntel = MB.ui.addText(this, C.WIDTH / 2, 68, "", { fontSize: "10px", color: "#ff7ad9" });
     this.buildArmory();
