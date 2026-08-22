@@ -66,6 +66,27 @@ MB.save = (function () {
     }
   }
 
+  function setupComplete() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      const s = data.settings;
+      if (!s || typeof s !== "object") return false;
+      const ops = s.ops;
+      const C = MB.config;
+      if (!ops || typeof ops !== "object") return false;
+      for (const op of C.OPS) {
+        if (typeof ops[op] !== "boolean") return false;
+      }
+      if (typeof s.difficulty !== "string" || C.DIFFICULTIES.indexOf(s.difficulty) === -1) return false;
+      if (typeof s.spelling !== "boolean") return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function clear() {
     try {
       localStorage.removeItem(KEY);
@@ -111,5 +132,5 @@ MB.save = (function () {
     return total;
   }
 
-  return { defaults: defaults, load: load, save: save, clear: clear, newMission: newMission, scoreLoad: scoreLoad, scoreAdd: scoreAdd };
+  return { defaults: defaults, load: load, save: save, clear: clear, newMission: newMission, scoreLoad: scoreLoad, scoreAdd: scoreAdd, setupComplete: setupComplete };
 })();
