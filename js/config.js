@@ -184,6 +184,14 @@ MB.config = (function () {
 
   const SCORE_WEIGHTS = { grunt: 10, brute: 25, queen: 50 };
 
+  const SPELLING_URL = "https://1x1.rempfer.eu/api/words/mistakes/";
+  const SPELLING_PROBABILITY = 0.25;      // fraction of asked questions that are spelling questions
+  const SPELLING_LIMIT = 25;              // number of word samples requested from the API
+  const SPELLING_TIMEOUT_MS = 120000;     // the API can take minutes to answer
+  const SPELLING_TRIES = 2;               // tries overall per round
+  const SPELLING_RETRY_DELAY_MS = 360000; // back off 6 min, then repeat all tries
+  const SPELLING_IDLE_MS = 1800000;       // re-initialize after 30 min of user inactivity
+
   return {
     WIDTH: WIDTH,
     HEIGHT: HEIGHT,
@@ -206,6 +214,13 @@ MB.config = (function () {
     STAR_UPGRADE_ORDER: STAR_UPGRADE_ORDER,
     UPGRADES: UPGRADES,
     UPGRADE_LEVELS: UPGRADE_LEVELS,
-    SCORE_WEIGHTS: SCORE_WEIGHTS
+    SCORE_WEIGHTS: SCORE_WEIGHTS,
+    SPELLING_URL: SPELLING_URL,
+    SPELLING_PROBABILITY: SPELLING_PROBABILITY,
+    SPELLING_LIMIT: SPELLING_LIMIT,
+    SPELLING_TIMEOUT_MS: SPELLING_TIMEOUT_MS,
+    SPELLING_TRIES: SPELLING_TRIES,
+    SPELLING_RETRY_DELAY_MS: SPELLING_RETRY_DELAY_MS,
+    SPELLING_IDLE_MS: SPELLING_IDLE_MS
   };
 })();

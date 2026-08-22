@@ -11,7 +11,8 @@ MB.save = (function () {
       version: 1,
       settings: {
         ops: { add: true, sub: true, mul: true, div: true },
-        difficulty: "easy"
+        difficulty: "easy",
+        spelling: true
       },
       army: { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 },
       battlesWon: 0,

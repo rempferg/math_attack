@@ -33,12 +33,12 @@ MB.Scenes.Setup = new Phaser.Class({
       });
     }, this);
 
-    this.mixedButton = MB.ui.addButton(this, C.WIDTH / 2, 248, 260, 42, "ALL / MIXED", {
-      fill: 0x884499,
-      fillOver: 0xa55ab5,
+    this.spellingButton = MB.ui.addButton(this, C.WIDTH / 2, 248, 178, 42, "Spelling", {
+      fill: this.state.settings.spelling ? 0x2a9d3f : 0x333366,
+      fillOver: this.state.settings.spelling ? 0x3ac24f : 0x444488,
       fontSize: "13px",
       onClick: function () {
-        this.toggleOp("all");
+        this.toggleSpelling();
       }.bind(this)
     });
 
@@ -77,16 +77,19 @@ MB.Scenes.Setup = new Phaser.Class({
 
   toggleOp: function (op) {
     const C = MB.config;
-    if (op === "all") {
-      const allOn = C.OPS.every(function (o) { return this.state.settings.ops[o]; }, this);
-      C.OPS.forEach(function (o) { this.state.settings.ops[o] = !allOn; }, this);
-    } else {
-      this.state.settings.ops[op] = !this.state.settings.ops[op];
-    }
+    this.state.settings.ops[op] = !this.state.settings.ops[op];
     C.OPS.forEach(function (o) {
       const btn = this.opButtons[o];
       this.refreshButtonColor(btn, this.state.settings.ops[o] ? 0x2a9d3f : 0x333366, this.state.settings.ops[o] ? 0x3ac24f : 0x444488);
     }, this);
+    MB.audio.click();
+  },
+
+  toggleSpelling: function () {
+    this.state.settings.spelling = !this.state.settings.spelling;
+    const on = !!this.state.settings.spelling;
+    this.refreshButtonColor(this.spellingButton, on ? 0x2a9d3f : 0x333366, on ? 0x3ac24f : 0x444488);
+    MB.save.save(this.state);
     MB.audio.click();
   },
 

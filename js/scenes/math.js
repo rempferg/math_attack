@@ -64,7 +64,10 @@ MB.Scenes.Math = new Phaser.Class({
     }
 
     this.problemText = MB.ui.addText(this, C.WIDTH / 2, 211, "", { fontSize: "38px", color: "#ffffff" });
-    this.feedbackText = MB.ui.addText(this, C.WIDTH / 2, 468, "", { fontSize: "13px", color: "#88ff88" });
+    this.sentenceText = MB.ui.addText(this, 200, 156, "", { fontSize: "25px", color: "#ffffff", wordWrap: 560, lineHeight: 60, align: "left", origin: 0 });
+    this.sentenceText.setVisible(false);
+    this.baseTitle = this.titleText.text;
+    this.feedbackText = MB.ui.addText(this, C.WIDTH / 2, 460, "", { fontSize: "13px", color: "#88ff88" });
 
     MB.ui.addButton(this, 880, 30, 130, 36, "EXIT", {
       fill: 0x883333,
@@ -79,8 +82,11 @@ MB.Scenes.Math = new Phaser.Class({
     const answers = [];
     const aW = 210;
     const aH = 70;
-    const positions = [[330, 281], [630, 281], [330, 371], [630, 371]];
+    const rowY1 = 281 + aH / 3;
+    const rowY2 = 371 + aH / 3;
+    const positions = [[330, rowY1], [630, rowY1], [330, rowY2], [630, rowY2]];
     const colors = [0x2a5ab0, 0x2a7ab0, 0x2a5ab0, 0x2a7ab0];
+    this.answerColors = colors;
     positions.forEach(function (pos, i) {
       const btn = MB.ui.addButton(this, pos[0], pos[1], aW, aH, "", {
         fill: colors[i],
@@ -98,24 +104,49 @@ MB.Scenes.Math = new Phaser.Class({
   },
 
   loadProblem: function () {
-    const rec = this.state.pendingProblems[this.subject];
-    if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
-      this.problem = rec;
-      if (this.mode === "upg") this.streak = rec.streak || 0;
+    this.problem = null;
+    if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
+      this.problem = MB.spelling.pick();
+    }
+    if (this.problem) {
+      this.clearPending();
     } else {
-      this.problem = MB.math.makeProblem(this.band);
-      this.problem.streak = this.streak;
-      this.bufferProblem();
+      const rec = this.state.pendingProblems[this.subject];
+      if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
+        this.problem = rec;
+        if (this.mode === "upg") this.streak = rec.streak || 0;
+      } else {
+        this.problem = MB.math.makeProblem(this.band);
+        this.problem.streak = this.streak;
+        this.bufferProblem();
+      }
     }
     this.lock = false;
     this.renderProblem();
   },
 
   renderProblem: function () {
-    this.problemText.setText(this.problem.text + " = ?");
-    this.answers.forEach(function (btn, i) {
-      btn.list[1].setText(String(this.problem.options[i]));
-    }, this);
+    const p = this.problem;
+    this.titleText.setText(p.spelling ? "SPELLING" : this.baseTitle);
+    if (p.spelling) {
+      this.problemText.setVisible(false);
+      this.sentenceText.setVisible(true).setText(p.sentence);
+      let maxLen = 1;
+      p.options.forEach(function (o) { maxLen = Math.max(maxLen, String(o).length); });
+      const fs = maxLen > 7 ? 16 : 24;
+      this.answers.forEach(function (btn, i) {
+        btn.list[1].setFontSize(fs);
+        btn.list[1].setText(String(p.options[i]));
+      }, this);
+    } else {
+      this.sentenceText.setVisible(false);
+      this.problemText.setVisible(true).setFontSize(38);
+      this.problemText.setText(p.text + " = ?");
+      this.answers.forEach(function (btn, i) {
+        btn.list[1].setFontSize(26);
+        btn.list[1].setText(String(p.options[i]));
+      }, this);
+    }
     this.feedbackText.setText("");
     if (this.mode === "upg") {
       this.streakText.setText("Chain: " + this.streak + "/" + this.chain);
@@ -149,9 +180,10 @@ MB.Scenes.Math = new Phaser.Class({
   answer: function (btn) {
     if (this.lock) return;
     this.lock = true;
+    const p = this.problem;
     const idx = this.answers.indexOf(btn);
-    const chosen = this.problem.options[idx];
-    if (chosen === this.problem.answer) {
+    const chosen = p.options[idx];
+    if (chosen === p.answer) {
       this.clearPending();
       if (this.mode === "upg") {
         this.streak++;
@@ -176,16 +208,22 @@ MB.Scenes.Math = new Phaser.Class({
       } else {
         MB.audio.correct();
         this.streak++;
+        let gainTier = this.tier;
+        if (p.spelling) {
+          const tiers = MB.config.TIER_ORDER;
+          gainTier = tiers[Math.floor(Math.random() * tiers.length)];
+        }
         this.state = MB.save.load();
-        this.state.army[this.tier] = (this.state.army[this.tier] || 0) + 1;
+        this.state.army[gainTier] = (this.state.army[gainTier] || 0) + 1;
         MB.save.save(this.state);
         this.countText.setText("Fleet: \u00d7" + this.state.army[this.tier]);
+        const gainName = MB.config.UNITS[gainTier].name;
         this.feedbackText.setColor("#88ff88");
         if (this.streak > 0 && this.streak % 5 === 0) {
           MB.audio.streak();
-          this.feedbackText.setText("STREAK BONUS! " + this.streak + " in a row! +1 " + this.unit.name);
+          this.feedbackText.setText("STREAK BONUS! " + this.streak + " in a row! +1 " + gainName);
         } else {
-          this.feedbackText.setText("Correct! +1 " + this.unit.name + "!");
+          this.feedbackText.setText("Correct! +1 " + gainName + "!");
         }
         this.streakText.setText("Streak: " + this.streak);
         this.streakText.setColor(this.streak >= 3 ? "#ffd24d" : "#66c8ff");
@@ -196,17 +234,35 @@ MB.Scenes.Math = new Phaser.Class({
       this.streak = 0;
       this.clearPending();
       this.feedbackText.setColor("#ff6666");
-      this.feedbackText.setText("Oops! The answer was " + this.problem.answer + ". Chain reset!");
+      this.feedbackText.setText(this.mode === "upg" ? "Oops! Chain reset!" : "Oops! Streak reset!");
+      const correctIdx = p.options.indexOf(p.answer);
+      if (correctIdx >= 0) {
+        this.tweens.add({
+          targets: this.answers[correctIdx],
+          alpha: 0.15,
+          duration: 100,
+          yoyo: true,
+          repeat: p.spelling ? 11 : 3
+        });
+      }
       this.streakText.setText(this.mode === "upg" ? "Chain: 0/" + this.chain : "Streak: 0");
       this.streakText.setColor("#66c8ff");
-      this.time.delayedCall(900, this.newProblem, [], this);
+      this.time.delayedCall(p.spelling ? 2500 : 900, this.newProblem, [], this);
     }
   },
 
   newProblem: function () {
-    this.problem = MB.math.makeProblem(this.band);
-    this.problem.streak = this.streak;
-    this.bufferProblem();
+    this.problem = null;
+    if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
+      this.problem = MB.spelling.pick();
+    }
+    if (!this.problem) {
+      this.problem = MB.math.makeProblem(this.band);
+      this.problem.streak = this.streak;
+      this.bufferProblem();
+    } else {
+      this.clearPending();
+    }
     this.lock = false;
     this.renderProblem();
   },

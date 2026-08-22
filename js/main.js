@@ -4,6 +4,8 @@ window.MB = window.MB || {};
   "use strict";
   const C = MB.config;
 
+  MB.spelling.init();
+
   const config = {
     type: Phaser.AUTO,
     width: C.WIDTH,
