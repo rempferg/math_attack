@@ -173,7 +173,7 @@ MB.Scenes.Lab = new Phaser.Class({
     const level = this.state.upgrades[track] || 0;
     const maxed = level >= C.UPGRADE_LEVELS;
     const stars = MB.save.scoreLoad();
-    const unlocked = stars >= up.unlockStars;
+    const unlocked = level > 0 || stars >= up.unlockStars;
 
     var border = unlocked ? 0x5566bb : 0x333344;
     var fill = unlocked ? 0x0d0d30 : 0x080818;

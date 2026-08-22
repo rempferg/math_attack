@@ -111,7 +111,7 @@ MB.config = (function () {
   };
 
   const UPGRADE_ORDER = ["damage", "fireRate", "range"];
-  const STAR_UPGRADE_ORDER = ["sniperLaser", "torpedoLauncher", "invisibility"];
+  const STAR_UPGRADE_ORDER = ["invisibility", "sniperLaser", "torpedoLauncher"];
   const UPGRADES = {
     damage: {
       id: "damage",
@@ -140,7 +140,7 @@ MB.config = (function () {
     sniperLaser: {
       id: "sniperLaser",
       name: "Sniper Laser",
-      unlockStars: 7500,
+      unlockStars: 50000,
       beamDuration: 2000,
       beamTick: 200,
       chains: [5, 6, 7],
@@ -155,7 +155,7 @@ MB.config = (function () {
     torpedoLauncher: {
       id: "torpedoLauncher",
       name: "Torpedo Launcher",
-      unlockStars: 50000,
+      unlockStars: 200000,
       chains: [6, 7, 8],
       initialDelay: 4,
       levels: [
@@ -169,7 +169,7 @@ MB.config = (function () {
     invisibility: {
       id: "invisibility",
       name: "Invisibility",
-      unlockStars: 200000,
+      unlockStars: 7500,
       chains: [5, 6, 7],
       levels: [
         { duration: 5 },
