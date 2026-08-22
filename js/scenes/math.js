@@ -30,6 +30,8 @@ MB.Scenes.Math = new Phaser.Class({
     this.state = MB.save.load();
     this.streak = 0;
     this.lock = false;
+    this.awaitingCorrect = false;
+    this.blinkTween = null;
     this.particles = [];
     this.flash = null;
 
@@ -105,21 +107,21 @@ MB.Scenes.Math = new Phaser.Class({
 
   loadProblem: function () {
     this.problem = null;
-    if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
+    const rec = this.state.pendingProblems[this.subject];
+    if (rec && rec.spelling && this.state.settings.spelling &&
+        rec.sentence && rec.answer && Array.isArray(rec.options)) {
+      this.problem = rec;
+      if (this.mode === "upg") this.streak = rec.streak || 0;
+    } else if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
       this.problem = MB.spelling.pick();
-    }
-    if (this.problem) {
-      this.clearPending();
+      this.bufferSpelling();
+    } else if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
+      this.problem = rec;
+      if (this.mode === "upg") this.streak = rec.streak || 0;
     } else {
-      const rec = this.state.pendingProblems[this.subject];
-      if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
-        this.problem = rec;
-        if (this.mode === "upg") this.streak = rec.streak || 0;
-      } else {
-        this.problem = MB.math.makeProblem(this.band);
-        this.problem.streak = this.streak;
-        this.bufferProblem();
-      }
+      this.problem = MB.math.makeProblem(this.band);
+      this.problem.streak = this.streak;
+      this.bufferProblem();
     }
     this.lock = false;
     this.renderProblem();
@@ -170,6 +172,20 @@ MB.Scenes.Math = new Phaser.Class({
     this.state = state;
   },
 
+  bufferSpelling: function () {
+    const state = MB.save.load();
+    const rec = {
+      spelling: true,
+      sentence: this.problem.sentence,
+      answer: this.problem.answer,
+      options: this.problem.options
+    };
+    if (this.mode === "upg") rec.streak = this.streak;
+    state.pendingProblems[this.subject] = rec;
+    MB.save.save(state);
+    this.state = state;
+  },
+
   clearPending: function () {
     const state = MB.save.load();
     delete state.pendingProblems[this.subject];
@@ -179,10 +195,24 @@ MB.Scenes.Math = new Phaser.Class({
 
   answer: function (btn) {
     if (this.lock) return;
-    this.lock = true;
     const p = this.problem;
     const idx = this.answers.indexOf(btn);
     const chosen = p.options[idx];
+    if (this.awaitingCorrect) {
+      if (chosen !== p.answer) {
+        MB.audio.wrong();
+        return;
+      }
+      MB.audio.correct();
+      this.stopBlink();
+      this.awaitingCorrect = false;
+      this.feedbackText.setColor("#88ff88");
+      this.feedbackText.setText("Yes! That one!");
+      this.lock = true;
+      this.time.delayedCall(450, this.newProblem, [], this);
+      return;
+    }
+    this.lock = true;
     if (chosen === p.answer) {
       this.clearPending();
       if (this.mode === "upg") {
@@ -233,35 +263,44 @@ MB.Scenes.Math = new Phaser.Class({
       MB.audio.wrong();
       this.streak = 0;
       this.clearPending();
+      this.awaitingCorrect = true;
       this.feedbackText.setColor("#ff6666");
-      this.feedbackText.setText(this.mode === "upg" ? "Oops! Chain reset!" : "Oops! Streak reset!");
+      this.feedbackText.setText((this.mode === "upg" ? "Oops! Chain reset!" : "Oops! Streak reset!") + " Click the flashing answer!");
       const correctIdx = p.options.indexOf(p.answer);
       if (correctIdx >= 0) {
-        this.tweens.add({
+        this.blinkTween = this.tweens.add({
           targets: this.answers[correctIdx],
           alpha: 0.15,
           duration: 100,
           yoyo: true,
-          repeat: p.spelling ? 11 : 3
+          repeat: -1
         });
       }
       this.streakText.setText(this.mode === "upg" ? "Chain: 0/" + this.chain : "Streak: 0");
       this.streakText.setColor("#66c8ff");
-      this.time.delayedCall(p.spelling ? 2500 : 900, this.newProblem, [], this);
+      this.lock = false;
     }
   },
 
+  stopBlink: function () {
+    if (this.blinkTween) {
+      this.blinkTween.stop();
+      this.blinkTween = null;
+    }
+    this.answers.forEach(function (btn) { btn.setAlpha(1); }, this);
+  },
+
   newProblem: function () {
+    this.stopBlink();
+    this.awaitingCorrect = false;
     this.problem = null;
     if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
       this.problem = MB.spelling.pick();
-    }
-    if (!this.problem) {
+      this.bufferSpelling();
+    } else {
       this.problem = MB.math.makeProblem(this.band);
       this.problem.streak = this.streak;
       this.bufferProblem();
-    } else {
-      this.clearPending();
     }
     this.lock = false;
     this.renderProblem();
