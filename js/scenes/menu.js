@@ -16,7 +16,7 @@ MB.Scenes.Menu = new Phaser.Class({
     MB.ui.addText(this, C.WIDTH / 2, 120, "MATH ATTACK", { fontSize: "44px", color: "#66c8ff", fontStyle: "bold", stroke: "#66c8ff", strokeThickness: 2 });
     MB.ui.addText(this, C.WIDTH / 2, 175, "Space Adventure", { fontSize: "18px", color: "#ffd24d" });
     MB.ui.addText(this, C.WIDTH / 2, 210, "Solve math. Build a fleet. Destroy the alien base.", { fontSize: "11px", color: "#aabbee" });
-    MB.ui.addText(this, C.WIDTH - 12, 16, "V23", { fontSize: "13px", color: "#6677aa", origin: 1 });
+    MB.ui.addText(this, C.WIDTH - 12, 16, "V24", { fontSize: "13px", color: "#6677aa", origin: 1 });
 
     const state = MB.save.load();
     const hasProgress = state.army.drone + state.army.fighter + state.army.cruiser + state.army.dreadnought > 0;
@@ -28,7 +28,7 @@ MB.Scenes.Menu = new Phaser.Class({
       onClick: function () {
         MB.audio.unlock();
         MB.audio.click();
-        MB.sceneGo(this, "Setup");
+        MB.sceneGo(this, MB.save.setupComplete() ? "Base" : "Setup");
       }.bind(this)
     });
 

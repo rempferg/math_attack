@@ -18,15 +18,17 @@ MB.Scenes.Base = new Phaser.Class({
 
     MB.ui.addText(this, C.WIDTH / 2, 30, "YOUR BASE", { fontSize: "24px", color: "#66c8ff" });
 
-    MB.ui.addButton(this, 880, 30, 130, 36, "SETUP", {
-      fill: 0x883333,
-      fillOver: 0xaa4444,
-      fontSize: "11px",
-      onClick: function () {
-        MB.audio.click();
-        MB.sceneGo(this, "Setup");
-      }.bind(this)
-    });
+    if (!MB.save.setupComplete()) {
+      MB.ui.addButton(this, 880, 30, 130, 36, "SETUP", {
+        fill: 0x883333,
+        fillOver: 0xaa4444,
+        fontSize: "11px",
+        onClick: function () {
+          MB.audio.click();
+          MB.sceneGo(this, "Setup");
+        }.bind(this)
+      });
+    }
 
     MB.ui.addButton(this, 735, 30, 130, 36, "WEAPONS LAB", {
       fill: 0x334488,
