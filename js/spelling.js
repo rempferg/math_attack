@@ -5,9 +5,11 @@ MB.spelling = (function () {
 
   const C = MB.config;
   const CACHE_KEY = "math-blaster-spelling-cache-v2";
+  const CHILD_KEY = "math-blaster-spelling-child-v1";
 
   let loading = false;
   let retryTimer = null;
+  let roundUsedUrl = false;
   let lastActivity = Date.now();
   let idleReinitDone = false;
 
@@ -37,11 +39,34 @@ MB.spelling = (function () {
 
   let items = loadCache();
 
-  function childId() {
+  function validChildId(id) {
+    return typeof id === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(id);
+  }
+
+  function storedChildId() {
     try {
-      return new URLSearchParams(window.location.search).get("id");
+      const v = localStorage.getItem(CHILD_KEY);
+      return validChildId(v) ? v : null;
     } catch (e) {
       return null;
+    }
+  }
+
+  function saveChildId(id) {
+    try {
+      localStorage.setItem(CHILD_KEY, id);
+    } catch (e) {
+      // storage unavailable — ignore
+    }
+  }
+
+  function urlChildId() {
+    try {
+      const v = new URLSearchParams(window.location.search).get("id");
+      if (typeof v !== "string") return "";
+      return v.trim();
+    } catch (e) {
+      return "";
     }
   }
 
@@ -98,13 +123,30 @@ MB.spelling = (function () {
     return arr;
   }
 
-  function attemptRound(triesLeft) {
-    const id = childId();
-    if (!id) return;
-    loading = true;
+  function attemptRound(triesLeft, target) {
+    let id, fromUrl;
+    if (target) {
+      id = target.id;
+      fromUrl = target.fromUrl;
+    } else {
+      if (!roundUsedUrl && validChildId(urlChildId())) {
+        id = urlChildId();
+        fromUrl = true;
+        roundUsedUrl = true;
+      } else {
+        id = storedChildId();
+        fromUrl = false;
+      }
+      if (!id) {
+        loading = false;
+        return;
+      }
+      loading = true;
+    }
     const url = C.SPELLING_URL + encodeURIComponent(id) + "?limit=" + C.SPELLING_LIMIT;
     fetchJSON(url, C.SPELLING_TIMEOUT_MS).then(function (list) {
       loading = false;
+      saveChildId(id);
       const built = buildItems(list);
       if (built.length > 0) {
         items = built;
@@ -112,11 +154,18 @@ MB.spelling = (function () {
       }
     }).catch(function () {
       if (triesLeft > 1) {
-        attemptRound(triesLeft - 1);
-      } else {
-        loading = false;
-        scheduleRetry();
+        attemptRound(triesLeft - 1, { id: id, fromUrl: fromUrl });
+        return;
       }
+      if (fromUrl) {
+        const stored = storedChildId();
+        if (stored && stored !== id) {
+          attemptRound(C.SPELLING_TRIES); // URL id rejected — fall back to stored id
+          return;
+        }
+      }
+      loading = false;
+      scheduleRetry();
     });
   }
 
@@ -129,13 +178,12 @@ MB.spelling = (function () {
   }
 
   function init() {
-    const id = childId();
-    if (!id) return;
     if (retryTimer) {
       clearTimeout(retryTimer);
       retryTimer = null;
     }
     if (loading) return;
+    roundUsedUrl = false;
     lastActivity = Date.now();
     idleReinitDone = false;
     attemptRound(C.SPELLING_TRIES);
