@@ -27,6 +27,7 @@ MB.Scenes.Battle = new Phaser.Class({
     this.enemyUnits = [];
     this.projectiles = [];
     this.torpedoes = [];
+    this.dronelets = [];
     this.damageTexts = [];
     this.shotCounter = 0;
     this.playerLost = { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 };
@@ -93,7 +94,8 @@ MB.Scenes.Battle = new Phaser.Class({
           } : null,
           torpedo: id === "cruiser" && (this.upg.torpedoLauncher || 0) > 0 ? {
             cooldown: Math.random() * C.UPGRADES.torpedoLauncher.initialDelay * 1000
-          } : null
+          } : null,
+          hangar: id === "carrier" ? this.newHangar() : null
         });
         idx++;
       }
@@ -155,6 +157,148 @@ MB.Scenes.Battle = new Phaser.Class({
       hp: hp, maxHp: maxHp,
       g: g, bar: bar
     };
+  },
+
+  newHangar: function () {
+    const C = MB.config;
+    const min = C.CARRIER.firstWaveDelayMinSec * 1000;
+    const max = C.CARRIER.firstWaveDelayMaxSec * 1000;
+    return {
+      pendingFirstWave: C.CARRIER.dronesPerCarrier,
+      launchTimer: min + Math.random() * (max - min),
+      launchTick: 0,
+      aliveCount: 0,
+      launchedOnce: false,
+      respawnTimer: C.CARRIER.otherWaveDelaySec * 1000
+    };
+  },
+
+  updateCarriers: function (dtSec) {
+    const C = MB.config;
+    var dtMs = dtSec * 1000;
+    for (var i = 0; i < this.playerUnits.length; i++) {
+      var u = this.playerUnits[i];
+      if (u.dead || !u.hangar) continue;
+      var h = u.hangar;
+      if (!h.launchedOnce) {
+        h.launchTimer -= dtMs;
+        if (h.launchTimer <= 0) {
+          h.launchTick -= dtMs;
+          while (h.launchTick <= 0 && h.pendingFirstWave > 0) {
+            this.spawnDronelet(u);
+            h.pendingFirstWave--;
+            h.launchTick += C.CARRIER.firstWaveSpacingMs;
+          }
+          if (h.pendingFirstWave <= 0) h.launchedOnce = true;
+        }
+      } else if (h.aliveCount <= 0) {
+        h.respawnTimer -= dtMs;
+        if (h.respawnTimer <= 0) {
+          for (var k = 0; k < C.CARRIER.dronesPerCarrier; k++) {
+            this.spawnDronelet(u);
+          }
+          h.respawnTimer = C.CARRIER.otherWaveDelaySec * 1000;
+        }
+      }
+    }
+  },
+
+  spawnDronelet: function (carrier) {
+    const C = MB.config;
+    const d = C.CARRIER.dronelet;
+    const dmgMul = 1 + (this.upg.damage || 0) * C.UPGRADES.damage.perLevel;
+    const rangeMul = 1 + (this.upg.range || 0) * C.UPGRADES.range.perLevel;
+    const g = this.add.graphics();
+    MB.sprites.drawShip(g, d, true, 0);
+    const ang = Math.random() * Math.PI * 2;
+    const x = Math.max(40, Math.min(905, carrier.x - 14 + Math.cos(ang) * 18));
+    const y = Math.max(80, Math.min(480, carrier.y + Math.sin(ang) * 18));
+    g.setPosition(x, y);
+    this.dronelets.push({
+      side: "player",
+      kind: "dronelet",
+      def: d,
+      g: g,
+      bar: null,
+      x: x, y: y,
+      hp: 1, maxHp: 1,
+      damage: Math.max(1, Math.round(d.damagePerTick * dmgMul)),
+      range: Math.round(d.beamRange * rangeMul),
+      speed: d.speed,
+      cooldown: 0,
+      cooldownMax: 0,
+      dead: false,
+      parent: carrier,
+      phase: Math.random() * Math.PI * 2,
+      freq: 6 + Math.random() * 5,
+      burst: { active: false, target: null, remaining: 0, tickTimer: 0, cooldown: 300 + Math.random() * 500, gfx: null }
+    });
+    carrier.hangar.aliveCount++;
+  },
+
+  updateDronelets: function (time, dtSec) {
+    const C = MB.config;
+    var dtMs = dtSec * 1000;
+    for (var i = 0; i < this.dronelets.length; i++) {
+      var d = this.dronelets[i];
+      if (d.dead) continue;
+      var nt = this.nearestTarget(d);
+      if (!nt.target) continue;
+
+      if (!d.burst.active && nt.distance > d.range * 0.85) {
+        var dx = nt.target.x - d.x;
+        var dy = nt.target.y - d.y;
+        var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        var heading = Math.atan2(dy, dx) + Math.sin(time * 0.001 * d.freq + d.phase) * 0.45;
+        var step = d.speed * dtSec;
+        d.x += Math.cos(heading) * step;
+        d.y += Math.sin(heading) * step;
+        d.x = Math.max(40, Math.min(905, d.x));
+        d.y = Math.max(80, Math.min(480, d.y));
+        d.g.setPosition(d.x, d.y);
+      }
+
+      var b = d.burst;
+      if (b.active) {
+        var t = b.target;
+        if (!t || t.dead || t.hp <= 0) {
+          this.endBurst(d);
+          b.cooldown = C.CARRIER.dronelet.cooldownMinMs + Math.random() * (C.CARRIER.dronelet.cooldownMaxMs - C.CARRIER.dronelet.cooldownMinMs);
+        } else {
+          b.remaining -= dtMs;
+          b.tickTimer += dtMs;
+          if (b.tickTimer >= C.CARRIER.dronelet.tickMs) {
+            b.tickTimer -= C.CARRIER.dronelet.tickMs;
+            this.hit(t, d.damage);
+          }
+          MB.sprites.drawDroneBeam(b.gfx, d.x, d.y, t.x, t.y);
+          if (b.remaining <= 0) {
+            this.endBurst(d);
+            b.cooldown = C.CARRIER.dronelet.cooldownMinMs + Math.random() * (C.CARRIER.dronelet.cooldownMaxMs - C.CARRIER.dronelet.cooldownMinMs);
+          }
+        }
+      } else {
+        b.cooldown -= dtMs;
+        if (b.cooldown <= 0 && nt.distance <= d.range && nt.distance > 1) {
+          b.active = true;
+          b.target = nt.target;
+          b.remaining = C.CARRIER.dronelet.burstMs;
+          b.tickTimer = 0;
+          b.gfx = this.add.graphics();
+          if (Math.random() < 0.2) MB.audio.laser();
+        }
+      }
+    }
+  },
+
+  endBurst: function (d) {
+    var b = d.burst;
+    b.active = false;
+    b.target = null;
+    if (b.gfx) {
+      b.gfx.destroy();
+      b.gfx = null;
+    }
   },
 
   dist: function (ax, ay, bx, by) {
@@ -487,13 +631,14 @@ MB.Scenes.Battle = new Phaser.Class({
 
   nearestTarget: function (u) {
     const C = MB.config;
-    const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits;
+    const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits.concat(this.dronelets);
     let best = null;
     let bd = Infinity;
     for (let i = 0; i < enemies.length; i++) {
       const e = enemies[i];
       if (e.dead) continue;
       if (e.invisible) continue;
+      if (e.kind === "dronelet" && (u.kind === "brute" || u.kind === "queen")) continue;
       const d = this.dist(u.x, u.y, e.x, e.y);
       if (d < bd) { bd = d; best = e; }
     }
@@ -530,15 +675,18 @@ MB.Scenes.Battle = new Phaser.Class({
     this.updateTorpedoes(dtSec);
     this.updateSniperBeams(dtSec);
     this.updateInvisibility(dtSec);
+    this.updateCarriers(dtSec);
+    this.updateDronelets(time, dtSec);
     this.checkEnd();
   },
 
   updateUnits: function (_time, dtSec) {
     const C = MB.config;
-    const all = this.playerUnits.concat(this.enemyUnits);
+    const all = this.playerUnits.concat(this.dronelets, this.enemyUnits);
     for (let i = 0; i < all.length; i++) {
       const u = all[i];
       if (u.dead) continue;
+      if (u.kind === "dronelet") continue;
       const nt = this.nearestTarget(u);
       if (!nt.target) continue;
       u.cooldown = Math.max(0, u.cooldown - dtSec * 1000);
@@ -550,7 +698,7 @@ MB.Scenes.Battle = new Phaser.Class({
         this.fireTorpedoes(u);
       }
 
-      if (nt.distance <= u.range && u.cooldown <= 0) {
+      if (nt.distance <= u.range && u.cooldown <= 0 && u.damage > 0) {
         this.fire(u, nt.target);
         u.cooldown = u.cooldownMax;
       }
@@ -610,7 +758,7 @@ MB.Scenes.Battle = new Phaser.Class({
     if (target === this.base) {
       this.baseDamageDealt += damage;
       this.base.bar.updateBar(Math.max(0, target.hp) / target.maxHp);
-    } else {
+    } else if (target.bar) {
       target.bar.updateBar(Math.max(0, target.hp) / target.maxHp);
     }
     if (target.hp <= 0) {
@@ -659,9 +807,32 @@ MB.Scenes.Battle = new Phaser.Class({
     if (unit.beam) {
       this.stopBeam(unit);
     }
+    if (unit.burst) {
+      this.endBurst(unit);
+    }
     if (unit === this.base) {
       MB.audio.boom();
       this.explosion(unit.x, unit.y, true);
+      return;
+    }
+    if (unit.kind === "dronelet") {
+      if (unit.parent && !unit.parent.dead) {
+        unit.parent.hangar.aliveCount--;
+      }
+      MB.audio.explode();
+      var p = this.add.graphics();
+      p.fillStyle(unit.def.color, 1);
+      p.fillCircle(0, 0, 6);
+      p.setPosition(unit.x, unit.y);
+      this.tweens.add({
+        targets: p,
+        scaleX: 2,
+        scaleY: 2,
+        alpha: 0,
+        duration: 250,
+        onComplete: function () { p.destroy(); }
+      });
+      unit.g.destroy();
       return;
     }
     if (unit.side === "player") {
@@ -679,12 +850,13 @@ MB.Scenes.Battle = new Phaser.Class({
       }
     }
     unit.g.destroy();
-    unit.bar.destroy();
+    if (unit.bar) unit.bar.destroy();
   },
 
   checkEnd: function () {
     if (this.ended) return;
-    const playerAlive = this.playerUnits.filter(function (u) { return !u.dead; }).length;
+    const playerAlive = this.playerUnits.filter(function (u) { return !u.dead; }).length +
+      this.dronelets.filter(function (d) { return !d.dead; }).length;
     const enemyAlive = this.enemyUnits.filter(function (u) { return !u.dead; }).length;
     if (enemyAlive === 0 && this.base.hp <= 0) {
       this.endBattle(true);
@@ -750,6 +922,14 @@ MB.Scenes.Battle = new Phaser.Class({
     for (let i = 0; i < this.playerUnits.length; i++) {
       if (this.playerUnits[i].beam) this.stopBeam(this.playerUnits[i]);
     }
+    for (var d = 0; d < this.dronelets.length; d++) {
+      var drone = this.dronelets[d];
+      if (drone.dead) continue;
+      this.endBurst(drone);
+      drone.g.destroy();
+      drone.dead = true;
+    }
+    this.dronelets = [];
 
     const survivors = this.playerUnits.filter(function (u) { return !u.dead; }).length;
     const enemyDead = this.enemyUnits.filter(function (u) { return u.dead; }).length;

@@ -62,7 +62,10 @@ MB.Scenes.Setup = new Phaser.Class({
 
     this.diffInfo = MB.ui.addText(this, C.WIDTH / 2, 384, C.DIFFICULTY_INFO[this.state.settings.difficulty], { fontSize: "10px", color: "#88aadd" });
 
-    const total = this.state.army.drone + this.state.army.fighter + this.state.army.cruiser + this.state.army.dreadnought;
+    let total = 0;
+    MB.config.TIER_ORDER.forEach(function (id) {
+      total += this.state.army[id] || 0;
+    }, this);
     this.fleetInfo = MB.ui.addText(this, C.WIDTH / 2, 428, "Mission " + (this.state.mission || 1) + "   |   Fleet: " + total + " ships   |   Battles won: " + this.state.battlesWon + "   |   Base destroyed: " + (this.state.baseDestroyed ? "YES" : "not yet"), { fontSize: "10px", color: "#88aadd" });
 
     MB.ui.addButton(this, C.WIDTH / 2, 488, 260, 48, "CONTINUE", {

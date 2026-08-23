@@ -240,7 +240,7 @@ MB.Scenes.Math = new Phaser.Class({
         this.streak++;
         let gainTier = this.tier;
         if (p.spelling) {
-          const tiers = MB.config.TIER_ORDER;
+          const tiers = MB.config.TIER_ORDER.filter(function (t) { return t !== "carrier"; });
           gainTier = tiers[Math.floor(Math.random() * tiers.length)];
         }
         this.state = MB.save.load();
