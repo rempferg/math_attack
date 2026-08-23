@@ -16,10 +16,12 @@ MB.Scenes.Menu = new Phaser.Class({
     MB.ui.addText(this, C.WIDTH / 2, 120, "MATH ATTACK", { fontSize: "44px", color: "#66c8ff", fontStyle: "bold", stroke: "#66c8ff", strokeThickness: 2 });
     MB.ui.addText(this, C.WIDTH / 2, 175, "Space Adventure", { fontSize: "18px", color: "#ffd24d" });
     MB.ui.addText(this, C.WIDTH / 2, 210, "Solve math. Build a fleet. Destroy the alien base.", { fontSize: "11px", color: "#aabbee" });
-    MB.ui.addText(this, C.WIDTH - 12, 16, "V29", { fontSize: "13px", color: "#6677aa", origin: 1 });
+    MB.ui.addText(this, C.WIDTH - 12, 16, "V30", { fontSize: "13px", color: "#6677aa", origin: 1 });
 
     const state = MB.save.load();
-    const hasProgress = state.army.drone + state.army.fighter + state.army.cruiser + state.army.dreadnought > 0;
+    const hasProgress = MB.config.TIER_ORDER.some(function (id) {
+      return (state.army[id] || 0) > 0;
+    });
 
     MB.ui.addButton(this, C.WIDTH / 2, 300, 260, 64, "PLAY", {
       fill: 0x2a9d3f,
@@ -34,7 +36,10 @@ MB.Scenes.Menu = new Phaser.Class({
 
     let status = "Train ships by solving math problems!";
     if (hasProgress) {
-      const total = state.army.drone + state.army.fighter + state.army.cruiser + state.army.dreadnought;
+      let total = 0;
+      MB.config.TIER_ORDER.forEach(function (id) {
+        total += state.army[id] || 0;
+      });
       status = "Your fleet: " + total + " ships   |   Battles won: " + state.battlesWon;
     }
     MB.ui.addText(this, C.WIDTH / 2, 395, status, { fontSize: "11px", color: "#88aadd" });

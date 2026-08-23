@@ -238,6 +238,16 @@ MB.sprites = (function () {
     g.fillCircle(-12, 0, 4);
   }
 
+  function drawDroneBeam(g, fromX, fromY, toX, toY) {
+    g.clear();
+    g.lineStyle(1.5, 0xff3333, 0.95);
+    g.lineBetween(fromX, fromY, toX, toY);
+    g.fillStyle(0xff6666, 0.8);
+    g.fillCircle(toX, toY, 3);
+    g.fillStyle(0xffffff, 0.5);
+    g.fillCircle(toX, toY, 1.2);
+  }
+
   function drawLockIcon(g) {
     g.clear();
     g.fillStyle(0x666688, 1);
@@ -258,5 +268,5 @@ MB.sprites = (function () {
     g.fillTriangle(6, 0, -4, -3.5, -4, 3.5);
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon };
+  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon, drawDroneBeam: drawDroneBeam };
 })();

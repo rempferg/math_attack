@@ -14,7 +14,7 @@ MB.save = (function () {
         difficulty: "easy",
         spelling: true
       },
-      army: { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0 },
+      army: { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0, carrier: 0 },
       battlesWon: 0,
       battlesLost: 0,
       enemiesDestroyed: 0,

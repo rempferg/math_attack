@@ -87,15 +87,52 @@ MB.config = (function () {
       size: 19,
       color: 0xffd24d,
       desc: "Tank of the fleet."
+    },
+    carrier: {
+      id: "carrier",
+      name: "Carrier",
+      band: "elite",
+      hp: 160,
+      damage: 0,
+      speed: 70,
+      fireRate: 0,
+      range: 260,
+      size: 21,
+      color: 0xff6ec7,
+      desc: "Launches drone swarms."
     }
   };
 
-  const TIER_ORDER = ["drone", "fighter", "cruiser", "dreadnought"];
+  const TIER_ORDER = ["drone", "fighter", "cruiser", "dreadnought", "carrier"];
 
   const CAP_TIERS = {
     easy: ["drone"],
     medium: ["drone", "fighter"],
-    hard: ["drone", "fighter", "cruiser", "dreadnought"]
+    hard: ["drone", "fighter", "cruiser", "dreadnought", "carrier"]
+  };
+
+  const CARRIER = {
+    unlockStars: 250000,
+    dronesPerCarrier: 4,
+    standoffRange: 260,
+    firstWaveDelayMinSec: 0.5,
+    firstWaveDelayMaxSec: 3,
+    firstWaveSpacingMs: 100,
+    otherWaveDelaySec: 3,
+    dronelet: {
+      id: "dronelet",
+      name: "Swarm Drone",
+      hp: 1,
+      speed: 210,
+      size: 5,
+      color: 0xff9ac2,
+      beamRange: 45,
+      burstMs: 300,
+      tickMs: 100,
+      damagePerTick: 1,
+      cooldownMinMs: 100,
+      cooldownMaxMs: 300
+    }
   };
 
   const ENEMY_UNITS = {
@@ -208,6 +245,7 @@ MB.config = (function () {
     UNITS: UNITS,
     TIER_ORDER: TIER_ORDER,
     CAP_TIERS: CAP_TIERS,
+    CARRIER: CARRIER,
     ENEMY_UNITS: ENEMY_UNITS,
     ENEMY_ARMIES: ENEMY_ARMIES,
     UPGRADE_ORDER: UPGRADE_ORDER,
