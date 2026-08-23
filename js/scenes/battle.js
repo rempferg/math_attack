@@ -837,6 +837,8 @@ MB.Scenes.Battle = new Phaser.Class({
     }
     if (unit.side === "player") {
       this.playerLost[unit.kind] = (this.playerLost[unit.kind] || 0) + 1;
+      this.state.army[unit.kind] = Math.max(0, (this.state.army[unit.kind] || 0) - 1);
+      MB.save.save(this.state);
       MB.audio.explode();
       this.explosion(unit.x, unit.y, unit.kind === "queen" || unit.kind === "dreadnought");
     } else {
@@ -938,9 +940,6 @@ MB.Scenes.Battle = new Phaser.Class({
       playerLostTotal += this.playerLost[id] || 0;
     }, this);
 
-    C.TIER_ORDER.forEach(function (id) {
-      state.army[id] = Math.max(0, (state.army[id] || 0) - (this.playerLost[id] || 0));
-    }, this);
     ["grunt", "brute", "queen"].forEach(function (type) {
       const e = state.enemyArmy || { grunt: 0, brute: 0, queen: 0 };
       e[type] = Math.max(0, (e[type] || 0) - (this.enemyKilled[type] || 0));
