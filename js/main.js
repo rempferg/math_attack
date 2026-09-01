@@ -55,7 +55,7 @@ window.MB = window.MB || {};
     var fsBtn = document.getElementById("fs-btn");
     if (!fsBtn) return;
 
-    if (document.fullscreenEnabled) {
+    if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
       fsBtn.addEventListener("click", function () {
         MB.audio.click();
         window.game.scale.toggleFullscreen();
