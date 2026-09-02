@@ -61,3 +61,55 @@ html, body {
   background: rgba(34, 51, 102, 0.9);
   border-color: #88aaee;
 }
+
+#webapp-help {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(5, 5, 24, 0.8);
+}
+
+.webapp-help-card {
+  max-width: 420px;
+  width: 100%;
+  padding: 24px;
+  border: 2px solid #6677aa;
+  border-radius: 12px;
+  background: #111133;
+  color: #aabbdd;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.webapp-help-card h2 {
+  margin: 0 0 12px;
+  color: #66c8ff;
+  font-size: 14px;
+}
+
+.webapp-help-card ol {
+  margin: 0 0 16px;
+  padding-left: 20px;
+}
+
+.webapp-help-card b {
+  color: #ffd24d;
+}
+
+.webapp-help-card button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #88aaee;
+  border-radius: 10px;
+  background: #223366;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}

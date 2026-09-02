@@ -55,7 +55,10 @@ window.MB = window.MB || {};
     var fsBtn = document.getElementById("fs-btn");
     if (!fsBtn) return;
 
-    if (document.fullscreenEnabled || document.webkitFullscreenEnabled) {
+    var el = document.documentElement;
+    var canFullscreen = !!(el.requestFullscreen || el.webkitRequestFullscreen);
+
+    if (canFullscreen) {
       fsBtn.addEventListener("click", function () {
         MB.audio.click();
         window.game.scale.toggleFullscreen();
@@ -67,7 +70,43 @@ window.MB = window.MB || {};
         fsBtn.title = "Fullscreen";
       });
     } else {
-      fsBtn.style.display = "none";
+      fsBtn.addEventListener("click", function () {
+        MB.audio.click();
+        showWebAppInstructions();
+      });
     }
   });
+
+  function showWebAppInstructions() {
+    var existing = document.getElementById("webapp-help");
+    if (existing) {
+      existing.remove();
+      return;
+    }
+
+    var overlay = document.createElement("div");
+    overlay.id = "webapp-help";
+    overlay.innerHTML =
+      '<div class="webapp-help-card">' +
+      "<h2>Play in fullscreen</h2>" +
+      "<p>Your browser can't go fullscreen from a button.</p>" +
+      "<ol>" +
+      "<li>Tap the <b>Share</b> button in Safari.</li>" +
+      "<li>Choose <b>Add to Home Screen</b>.</li>" +
+      "<li>Turn on <b>Open as Web App</b> and tap <b>Add</b>.</li>" +
+      "<li>Launch the game from your Home Screen — it opens fullscreen.</li>" +
+      "</ol>" +
+      "<button type=\"button\" id=\"webapp-help-close\">OK</button>" +
+      "</div>";
+
+    overlay.addEventListener("click", function () {
+      overlay.remove();
+    });
+    overlay.querySelector("#webapp-help-close").addEventListener("click", function (event) {
+      event.stopPropagation();
+      overlay.remove();
+    });
+
+    document.body.appendChild(overlay);
+  }
 })();
