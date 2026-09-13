@@ -51,14 +51,14 @@ MB.Scenes.Setup = new Phaser.Class({
       }
     }, this);
 
-    MB.ui.addText(this, C.WIDTH / 2, 292, "How hard can the problems get?", { fontSize: "14px", color: "#ffd24d" });
+    MB.ui.addText(this, C.WIDTH / 2, 262, "How hard can the problems get?", { fontSize: "14px", color: "#ffd24d" });
 
     this.diffButtons = {};
     const diffW = 130;
     const dStartX = C.WIDTH / 2 - (diffW + 10);
     C.DIFFICULTIES.forEach(function (d, i) {
       const x = dStartX + i * (diffW + 10);
-      this.diffButtons[d] = MB.ui.addButton(this, x, 330, diffW, 44, C.DIFFICULTY_NAMES[d], {
+      this.diffButtons[d] = MB.ui.addButton(this, x, 300, diffW, 44, C.DIFFICULTY_NAMES[d], {
         fill: this.state.settings.difficulty === d ? 0x2a9d3f : 0x333366,
         fillOver: this.state.settings.difficulty === d ? 0x3ac24f : 0x444488,
         fontSize: "12px",
@@ -69,7 +69,7 @@ MB.Scenes.Setup = new Phaser.Class({
       });
     }, this);
 
-    this.diffInfo = MB.ui.addText(this, C.WIDTH / 2, 384, C.DIFFICULTY_INFO[this.state.settings.difficulty], { fontSize: "10px", color: "#88aadd" });
+    this.diffInfo = MB.ui.addText(this, C.WIDTH / 2, 354, C.DIFFICULTY_INFO[this.state.settings.difficulty], { fontSize: "10px", color: "#88aadd" });
 
     let total = 0;
     MB.config.TIER_ORDER.forEach(function (id) {
