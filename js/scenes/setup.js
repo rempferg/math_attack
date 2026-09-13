@@ -21,27 +21,35 @@ MB.Scenes.Setup = new Phaser.Class({
     const gap = 16;
     const cols = 3;
     const startX = C.WIDTH / 2 - (opW * cols + gap * (cols - 1)) / 2;
-    C.OPS.forEach(function (op, i) {
+
+    const buttons = [];
+    C.OPS.forEach(function (op) {
+      buttons.push({ type: "op", op: op, label: C.OP_NAMES[op], on: this.state.settings.ops[op] });
+    }, this);
+    buttons.push({ type: "spelling", label: "Spelling", on: !!this.state.settings.spelling });
+
+    buttons.forEach(function (btn, i) {
       const x = startX + (i % cols) * (opW + gap);
       const y = 136 + Math.floor(i / cols) * 58;
-      this.opButtons[op] = MB.ui.addButton(this, x, y, opW, 46, C.OP_NAMES[op], {
-        fill: this.state.settings.ops[op] ? 0x2a9d3f : 0x333366,
-        fillOver: this.state.settings.ops[op] ? 0x3ac24f : 0x444488,
-        fontSize: "10px",
-        onClick: function () {
-          this.toggleOp(op);
-        }.bind(this)
+      const onClick = (function () {
+        if (btn.type === "op") {
+          this.toggleOp(btn.op);
+        } else {
+          this.toggleSpelling();
+        }
+      }).bind(this);
+      const button = MB.ui.addButton(this, x, y, opW, 46, btn.label, {
+        fill: btn.on ? 0x2a9d3f : 0x333366,
+        fillOver: btn.on ? 0x3ac24f : 0x444488,
+        fontSize: btn.type === "op" ? "10px" : "13px",
+        onClick: onClick
       });
+      if (btn.type === "op") {
+        this.opButtons[btn.op] = button;
+      } else {
+        this.spellingButton = button;
+      }
     }, this);
-
-    this.spellingButton = MB.ui.addButton(this, C.WIDTH / 2, 248, 178, 42, "Spelling", {
-      fill: this.state.settings.spelling ? 0x2a9d3f : 0x333366,
-      fillOver: this.state.settings.spelling ? 0x3ac24f : 0x444488,
-      fontSize: "13px",
-      onClick: function () {
-        this.toggleSpelling();
-      }.bind(this)
-    });
 
     MB.ui.addText(this, C.WIDTH / 2, 292, "How hard can the problems get?", { fontSize: "14px", color: "#ffd24d" });
 
