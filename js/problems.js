@@ -30,7 +30,7 @@ MB.math = (function () {
         a = rnd(2, cap);
         b = rnd(2, cap);
         answer = a * b;
-        text = a + " \u00d7 " + b;
+        text = a + " \u00b7 " + b;
         break;
       case "div":
         b = rnd(2, cap);
