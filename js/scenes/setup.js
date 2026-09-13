@@ -20,7 +20,7 @@ MB.Scenes.Setup = new Phaser.Class({
     const opW = 178;
     const gap = 16;
     const cols = 3;
-    const startX = C.WIDTH / 2 - (opW * cols + gap * (cols - 1)) / 2;
+    const startX = C.WIDTH / 2 - ((cols - 1) * (opW + gap)) / 2;
 
     const buttons = [];
     C.OPS.forEach(function (op) {
@@ -41,7 +41,7 @@ MB.Scenes.Setup = new Phaser.Class({
       const button = MB.ui.addButton(this, x, y, opW, 46, btn.label, {
         fill: btn.on ? 0x2a9d3f : 0x333366,
         fillOver: btn.on ? 0x3ac24f : 0x444488,
-        fontSize: btn.type === "op" ? "10px" : "13px",
+        fontSize: "10px",
         onClick: onClick
       });
       if (btn.type === "op") {
