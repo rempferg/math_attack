@@ -8,14 +8,15 @@ MB.config = (function () {
 
   const FONT = '"Press Start 2P", "Courier New", monospace';
 
-  const OPS = ["add", "sub", "mul", "div"];
+  const OPS = ["add", "sub", "mul", "div", "divR"];
   const OP_LABELS = {
     add: "+",
     sub: "\u2212",
     mul: "\u00d7",
-    div: ":"
+    div: ":",
+    divR: ":"
   };
-  const OP_NAMES = { add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division" };
+  const OP_NAMES = { add: "Addition", sub: "Subtraction", mul: "Multiplication", div: "Division", divR: "Division Rest" };
 
   const DIFFICULTIES = ["easy", "medium", "hard"];
   const DIFFICULTY_NAMES = { easy: "Easy", medium: "Medium", hard: "Hard" };
@@ -32,7 +33,8 @@ MB.config = (function () {
     add: { easy: 10, medium: 20, hard: 50, veryHard: 100, elite: 150 },
     sub: { easy: 10, medium: 20, hard: 50, veryHard: 100, elite: 150 },
     mul: { easy: 5, medium: 10, hard: 12, veryHard: 15, elite: 20 },
-    div: { easy: 5, medium: 9, hard: 12, veryHard: 15, elite: 20 }
+    div: { easy: 5, medium: 9, hard: 12, veryHard: 15, elite: 20 },
+    divR: { easy: 5, medium: 9, hard: 12, veryHard: 15, elite: 20 }
   };
 
   const UNITS = {

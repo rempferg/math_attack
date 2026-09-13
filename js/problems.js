@@ -13,6 +13,7 @@ MB.math = (function () {
     const ranges = C.NUM_RANGES[op];
     const cap = ranges[band] || ranges.medium;
     let a, b, answer, text;
+    const p = { op: op, band: band };
     switch (op) {
       case "add":
         a = rnd(1, cap - 1);
@@ -38,13 +39,24 @@ MB.math = (function () {
         a = b * answer;
         text = a + " : " + b;
         break;
+      case "divR":
+        b = rnd(2, cap);
+        p.b = b;
+        p.q = rnd(2, cap);
+        p.r = rnd(1, b - 1);
+        a = b * p.q + p.r;
+        answer = p.q + " R " + p.r;
+        text = a + " : " + b;
+        break;
       default:
         a = rnd(1, 10);
         b = rnd(1, 10);
         answer = a + b;
         text = a + " + " + b;
     }
-    return { op: op, band: band, text: text, answer: answer };
+    p.text = text;
+    p.answer = answer;
+    return p;
   }
 
   function randomOp() {
@@ -57,20 +69,40 @@ MB.math = (function () {
     return ops[rnd(0, ops.length - 1)];
   }
 
-  function pickAnswer(correct) {
+  function pickAnswer(p) {
     let opts = [];
     let guard = 0;
-    while (opts.length < 3 && guard < 200) {
-      guard++;
-      const delta = rnd(1, Math.max(2, Math.ceil(Math.abs(correct) / 3 + 2)));
-      const val = Math.random() < 0.5 ? correct + delta : correct - delta;
-      if (val >= 0 && val !== correct && opts.indexOf(val) === -1) opts.push(val);
+    if (p.op === "divR") {
+      while (opts.length < 3 && guard < 200) {
+        guard++;
+        const dq = rnd(1, Math.max(2, Math.ceil(Math.abs(p.q) / 3 + 2)));
+        const nq = p.q + (Math.random() < 0.5 ? -dq : dq);
+        if (nq < 1) continue;
+        const dr = rnd(1, Math.max(2, Math.ceil(p.b / 3 + 2)));
+        let nr = p.r + (Math.random() < 0.5 ? -dr : dr);
+        nr = ((nr % p.b) + p.b) % p.b;
+        if (nq === p.q && nr === p.r) continue;
+        const val = nq + " R " + nr;
+        if (opts.indexOf(val) === -1) opts.push(val);
+      }
+      while (opts.length < 3) {
+        const val = (p.q + opts.length + 2) + " R 0";
+        if (opts.indexOf(val) === -1) opts.push(val);
+      }
+      opts.push(p.answer);
+    } else {
+      while (opts.length < 3 && guard < 200) {
+        guard++;
+        const delta = rnd(1, Math.max(2, Math.ceil(Math.abs(p.answer) / 3 + 2)));
+        const val = Math.random() < 0.5 ? p.answer - delta : p.answer + delta;
+        if (val >= 0 && val !== p.answer && opts.indexOf(val) === -1) opts.push(val);
+      }
+      while (opts.length < 3) {
+        const val = p.answer + opts.length + 2;
+        if (opts.indexOf(val) === -1) opts.push(val);
+      }
+      opts.push(p.answer);
     }
-    while (opts.length < 3) {
-      const val = correct + opts.length + 2;
-      if (opts.indexOf(val) === -1) opts.push(val);
-    }
-    opts.push(correct);
     for (let i = opts.length - 1; i > 0; i--) {
       const j = rnd(0, i);
       const tmp = opts[i]; opts[i] = opts[j]; opts[j] = tmp;
@@ -81,7 +113,7 @@ MB.math = (function () {
   function makeProblem(band, opHint) {
     const op = opHint || randomOp();
     const p = makeOne(op, band || "easy");
-    p.options = pickAnswer(p.answer);
+    p.options = pickAnswer(p);
     return p;
   }
 

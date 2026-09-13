@@ -19,10 +19,11 @@ MB.Scenes.Setup = new Phaser.Class({
     this.opButtons = {};
     const opW = 178;
     const gap = 16;
-    const startX = C.WIDTH / 2 - (opW + gap) / 2;
+    const cols = 3;
+    const startX = C.WIDTH / 2 - (opW * cols + gap * (cols - 1)) / 2;
     C.OPS.forEach(function (op, i) {
-      const x = startX + (i % 2) * (opW + gap);
-      const y = 136 + Math.floor(i / 2) * 58;
+      const x = startX + (i % cols) * (opW + gap);
+      const y = 136 + Math.floor(i / cols) * 58;
       this.opButtons[op] = MB.ui.addButton(this, x, y, opW, 46, C.OP_NAMES[op], {
         fill: this.state.settings.ops[op] ? 0x2a9d3f : 0x333366,
         fillOver: this.state.settings.ops[op] ? 0x3ac24f : 0x444488,

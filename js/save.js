@@ -10,7 +10,7 @@ MB.save = (function () {
     return {
       version: 1,
       settings: {
-        ops: { add: true, sub: true, mul: true, div: true },
+        ops: { add: true, sub: true, mul: true, div: true, divR: true },
         difficulty: "easy",
         spelling: true
       },
