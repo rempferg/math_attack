@@ -201,24 +201,26 @@ MB.Scenes.Lab = new Phaser.Class({
 
     var nameColor = unlocked ? "#ffd24d" : "#556677";
     this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, y - 26, up.name.toUpperCase() + (unlocked ? "" : " \u2014 LOCKED"), { fontSize: "13px", color: nameColor, origin: 0, align: "left" }));
-    this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, y - 6, up.desc, { fontSize: "8px", color: unlocked ? "#aabbee" : "#445566", origin: 0, align: "left", wordWrap: 280 }));
+    var descObj = MB.ui.addText(this, C.WIDTH / 2 - 195, y - 6, up.desc, { fontSize: "8px", color: unlocked ? "#aabbee" : "#445566", origin: 0, align: "left", wordWrap: 280 });
+    this.scrollContainer.add(descObj);
+    var statusY = descObj.height > 0 ? descObj.y + descObj.height + 2 : y + 14;
 
     if (!unlocked) {
       var pre = "Unlocks at " + up.unlockStars.toLocaleString() + " ";
       var suf = " (you have " + stars.toLocaleString() + ")";
       var statusColor = "#cc8833";
-      var preObj = MB.ui.addText(this, C.WIDTH / 2 - 195, y + 14, pre, { fontSize: "8px", color: statusColor, origin: 0, align: "left" });
+      var preObj = MB.ui.addText(this, C.WIDTH / 2 - 195, statusY, pre, { fontSize: "8px", color: statusColor, origin: 0, align: "left" });
       this.scrollContainer.add(preObj);
       var starObj = MB.ui.addText(this, 0, 0, "\u2605", { fontSize: "20px", color: "#ffd24d", origin: 0, align: "left" });
       starObj.setScale(1, 1);
-      starObj.setPosition(preObj.x + preObj.width, y + 2);
+      starObj.setPosition(preObj.x + preObj.width, statusY - 12);
       this.scrollContainer.add(starObj);
-      var sufObj = MB.ui.addText(this, starObj.x + 12, y + 14, suf, { fontSize: "8px", color: statusColor, origin: 0, align: "left" });
+      var sufObj = MB.ui.addText(this, starObj.x + 12, statusY, suf, { fontSize: "8px", color: statusColor, origin: 0, align: "left" });
       this.scrollContainer.add(sufObj);
     } else if (maxed) {
-      this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, y + 14, "MAX LEVEL", { fontSize: "8px", color: "#ffd24d", origin: 0, align: "left" }));
+      this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, statusY, "MAX LEVEL", { fontSize: "8px", color: "#ffd24d", origin: 0, align: "left" }));
     } else {
-      this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, y + 14, "Next: " + this.effectLabel(track, level + 1) + "  \u00b7  " + up.chains[level] + " in a row", { fontSize: "8px", color: "#88ff88", origin: 0, align: "left", wordWrap: 280 }));
+      this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, statusY, "Next: " + this.effectLabel(track, level + 1) + "  \u00b7  " + up.chains[level] + " in a row", { fontSize: "8px", color: "#88ff88", origin: 0, align: "left", wordWrap: 280 }));
     }
 
     for (var p = 0; p < C.UPGRADE_LEVELS; p++) {
