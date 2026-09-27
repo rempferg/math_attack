@@ -150,7 +150,7 @@ MB.config = (function () {
   };
 
   const UPGRADE_ORDER = ["damage", "fireRate", "range"];
-  const STAR_UPGRADE_ORDER = ["invisibility", "sniperLaser", "torpedoLauncher"];
+  const STAR_UPGRADE_ORDER = ["invisibility", "sniperLaser", "torpedoLauncher", "clusterMunitions"];
   const UPGRADES = {
     damage: {
       id: "damage",
@@ -217,6 +217,21 @@ MB.config = (function () {
       ],
       desc: "Scout ships go invisible once per battle \u2014 enemies cannot target them",
       icon: "invisibility"
+    },
+    clusterMunitions: {
+      id: "clusterMunitions",
+      name: "Cluster Munitions",
+      unlockStars: 400000,
+      chains: [7, 8, 9],
+      splitFraction: 0.5,
+      targetRadius: 130,
+      levels: [
+        { splinters: 2 },
+        { splinters: 3 },
+        { splinters: 4 }
+      ],
+      desc: "Standard bolts split mid-flight into submunitions that hunt separate targets",
+      icon: "clusterMunitions"
     }
   };
   const UPGRADE_LEVELS = 3;

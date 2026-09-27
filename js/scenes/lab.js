@@ -188,6 +188,8 @@ MB.Scenes.Lab = new Phaser.Class({
         MB.sprites.drawTorpedoIcon(icon);
       } else if (track === "invisibility") {
         MB.sprites.drawInvisibilityIcon(icon);
+      } else if (track === "clusterMunitions") {
+        MB.sprites.drawClusterMunitionsIcon(icon);
       } else {
         MB.sprites.drawLockIcon(icon);
       }
@@ -273,6 +275,10 @@ MB.Scenes.Lab = new Phaser.Class({
     if (track === "invisibility") {
       var lv = MB.config.UPGRADES.invisibility.levels[level - 1];
       return lv.duration + "s invisibility";
+    }
+    if (track === "clusterMunitions") {
+      var lv = MB.config.UPGRADES.clusterMunitions.levels[level - 1];
+      return lv.splinters + "\u00d7 bolts per shot";
     }
     return "";
   },

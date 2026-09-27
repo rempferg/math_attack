@@ -140,6 +140,10 @@ MB.audio = (function () {
       noise(0.5, 0.5);
       tone(60, 0.45, "sawtooth", 0.18, 30);
       tone(100, 0.3, "sine", 0.12, 50);
+    },
+    clusterSplit: function () {
+      tone(1200, 0.07, "square", 0.09, 1800);
+      setTimeout(function () { tone(1500, 0.06, "square", 0.07, 2300); }, 55);
     }
   };
 })();

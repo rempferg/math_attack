@@ -49,7 +49,11 @@ MB.Scenes.Math = new Phaser.Class({
         nextLabel = "+" + Math.round(up.perLevel * (level + 1) * 100) + "%";
       } else if (up.levels && up.levels[level]) {
         var nl = up.levels[level];
-        nextLabel = nl.damage + " dmg";
+        if (nl.splinters) {
+          nextLabel = nl.splinters + "\u00d7 projectiles";
+        } else {
+          nextLabel = nl.damage + " dmg";
+        }
         if (nl.aoeRadius) nextLabel += " \u00b7 AOE " + nl.aoeRadius + "px";
         if (nl.range) nextLabel += " \u00b7 range " + nl.range;
         if (nl.duration) nextLabel = nl.duration + "s invisibility";

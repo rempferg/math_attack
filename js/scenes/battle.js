@@ -650,12 +650,23 @@ MB.Scenes.Battle = new Phaser.Class({
   },
 
   fire: function (u, target) {
+    const C = MB.config;
     this.shotCounter++;
     const g = this.add.graphics();
     const boltLevel = this.upg.damage || 0;
     MB.sprites.drawBolt(g, boltLevel);
     g.setPosition(u.x, u.y);
-    this.projectiles.push({ g: g, x: u.x, y: u.y, target: target, speed: 300, damage: u.damage, side: u.side });
+    const clusterLevel = u.side === "player" ? (this.upg.clusterMunitions || 0) : 0;
+    const splinters = clusterLevel > 0 ? C.UPGRADES.clusterMunitions.levels[clusterLevel - 1].splinters : 0;
+    const totalDist = this.dist(u.x, u.y, target.x, target.y);
+    this.projectiles.push({
+      g: g, x: u.x, y: u.y, target: target, speed: 300, damage: u.damage, side: u.side,
+      boltLevel: boltLevel,
+      split: splinters > 1,
+      splinters: splinters,
+      traveled: 0,
+      splitDist: totalDist * C.UPGRADES.clusterMunitions.splitFraction
+    });
     if (this.shotCounter % 4 === 1) {
       if (u.side === "player") {
         if (boltLevel > 0) MB.audio.powerLaser(boltLevel); else MB.audio.laser();
@@ -730,25 +741,104 @@ MB.Scenes.Battle = new Phaser.Class({
     const survivors = [];
     for (let i = 0; i < this.projectiles.length; i++) {
       const p = this.projectiles[i];
-      if (!p.target || p.target.dead || p.target.hp <= 0) {
-        p.g.destroy();
+      const target = p.target;
+      if (!target || target.dead || target.hp <= 0) {
+        if (p.split && p.splinters > 1) {
+          this.splitBolt(p, survivors);
+        } else {
+          p.g.destroy();
+        }
         continue;
       }
-      const dx = p.target.x - p.x;
-      const dy = p.target.y - p.y;
+      const dx = target.x - p.x;
+      const dy = target.y - p.y;
       const d = Math.sqrt(dx * dx + dy * dy);
       const step = p.speed * dtSec;
+      if (p.split && p.splinters > 1 && p.splitDist > 0 && p.traveled + step >= p.splitDist) {
+        p.traveled += step;
+        p.x += (dx / (d || 1)) * step;
+        p.y += (dy / (d || 1)) * step;
+        this.splitBolt(p, survivors);
+        continue;
+      }
       if (d <= step + 4) {
-        this.hit(p.target, p.damage);
+        this.hit(target, p.damage);
         p.g.destroy();
       } else {
         p.x += (dx / d) * step;
         p.y += (dy / d) * step;
+        p.traveled += step;
         p.g.setPosition(p.x, p.y);
         survivors.push(p);
       }
     }
     this.projectiles = survivors;
+  },
+
+  splitBolt: function (p, out) {
+    const C = MB.config;
+    const count = p.splinters;
+    const targets = this.selectSplitTargets(p.x, p.y, p.target, count);
+    for (let k = 0; k < count; k++) {
+      const g = k === 0 ? p.g : this.add.graphics();
+      MB.sprites.drawSubBolt(g, p.boltLevel || 0);
+      const ox = p.x + (Math.random() * 6 - 3);
+      const oy = p.y + (Math.random() * 6 - 3);
+      g.setPosition(ox, oy);
+      out.push({
+        g: g, x: ox, y: oy,
+        target: targets[k], speed: p.speed + 40, damage: p.damage, side: p.side,
+        boltLevel: p.boltLevel || 0,
+        split: false, splinters: 0, traveled: 0, splitDist: 0
+      });
+    }
+    this.splitFlash(p.x, p.y);
+    if (p.side === "player" && this.shotCounter % 4 === 1) MB.audio.clusterSplit();
+  },
+
+  selectSplitTargets: function (cx, cy, primary, count) {
+    const C = MB.config;
+    const radius = C.UPGRADES.clusterMunitions.targetRadius;
+    const primaryAlive = primary && !primary.dead && primary.hp > 0;
+    const ax = primaryAlive ? primary.x : cx;
+    const ay = primaryAlive ? primary.y : cy;
+    const pool = [];
+    for (let i = 0; i < this.enemyUnits.length; i++) {
+      const e = this.enemyUnits[i];
+      if (e.dead || e.hp <= 0) continue;
+      pool.push(e);
+    }
+    const self = this;
+    pool.sort(function (a, b) {
+      return self.dist(ax, ay, a.x, a.y) - self.dist(ax, ay, b.x, b.y);
+    });
+    const chosen = [];
+    for (let i = 0; i < pool.length && chosen.length < count; i++) {
+      if (this.dist(ax, ay, pool[i].x, pool[i].y) <= radius) chosen.push(pool[i]);
+    }
+    for (let i = 0; i < pool.length && chosen.length < count; i++) {
+      if (chosen.indexOf(pool[i]) === -1) chosen.push(pool[i]);
+    }
+    const fallback = primaryAlive ? primary : (this.base && this.base.hp > 0 ? this.base : primary);
+    while (chosen.length < count) chosen.push(fallback);
+    return chosen;
+  },
+
+  splitFlash: function (x, y) {
+    const g = this.add.graphics();
+    g.fillStyle(0x88e0ff, 0.8);
+    g.fillCircle(0, 0, 4);
+    g.lineStyle(2, 0xffffff, 0.9);
+    g.strokeCircle(0, 0, 7);
+    g.setPosition(x, y);
+    this.tweens.add({
+      targets: g,
+      scaleX: 2.4,
+      scaleY: 2.4,
+      alpha: 0,
+      duration: 260,
+      onComplete: function () { g.destroy(); }
+    });
   },
 
   hit: function (target, damage) {

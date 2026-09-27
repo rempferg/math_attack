@@ -71,6 +71,16 @@ MB.sprites = (function () {
     }
   }
 
+  function drawSubBolt(g, level) {
+    g.clear();
+    level = level || 0;
+    var core = level >= 3 ? 0xffffff : 0x88e0ff;
+    g.fillStyle(0x66e0ff, 0.3 + level * 0.05);
+    g.fillCircle(0, 0, 4 + level * 0.6);
+    g.fillStyle(core, 1);
+    g.fillCircle(0, 0, 2 + level * 0.35);
+  }
+
   function drawUpgradeIcon(g, track) {
     g.clear();
     if (track === "damage") {
@@ -268,5 +278,21 @@ MB.sprites = (function () {
     g.fillTriangle(6, 0, -4, -3.5, -4, 3.5);
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon, drawDroneBeam: drawDroneBeam };
+  function drawClusterMunitionsIcon(g) {
+    g.clear();
+    g.fillStyle(0x66e0ff, 1);
+    g.fillCircle(-11, 1, 3);
+    g.fillStyle(0x66e0ff, 0.45);
+    g.fillCircle(-11, 1, 5.5);
+    g.lineStyle(1, 0x88e0ff, 0.6);
+    g.lineBetween(-8, 0, 5, -9);
+    g.lineBetween(-8, 2, 10, 1);
+    g.lineBetween(-8, 2, 5, 10);
+    g.fillStyle(0x88e0ff, 1);
+    g.fillCircle(6, -10, 2.4);
+    g.fillCircle(11, 1, 2.4);
+    g.fillCircle(6, 10, 2.4);
+  }
+
+  return { drawShip: drawShip, drawBolt: drawBolt, drawSubBolt: drawSubBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon, drawClusterMunitionsIcon: drawClusterMunitionsIcon, drawDroneBeam: drawDroneBeam };
 })();
