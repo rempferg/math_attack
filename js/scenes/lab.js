@@ -203,7 +203,9 @@ MB.Scenes.Lab = new Phaser.Class({
     this.scrollContainer.add(MB.ui.addText(this, C.WIDTH / 2 - 195, y - 26, up.name.toUpperCase() + (unlocked ? "" : " \u2014 LOCKED"), { fontSize: "13px", color: nameColor, origin: 0, align: "left" }));
     var descObj = MB.ui.addText(this, C.WIDTH / 2 - 195, y - 6, up.desc, { fontSize: "8px", color: unlocked ? "#aabbee" : "#445566", origin: 0, align: "left", wordWrap: 280 });
     this.scrollContainer.add(descObj);
-    var statusY = descObj.height > 0 ? descObj.y + descObj.height + 2 : y + 14;
+    var descLines = Math.max(1, descObj.getWrappedText(up.desc).length);
+    var lineH = descObj.height > 0 ? descObj.height / descLines : 10;
+    var statusY = descObj.height > 0 ? descObj.y + descObj.height + 2 + lineH / 3 : y + 14;
 
     if (!unlocked) {
       var pre = "Unlocks at " + up.unlockStars.toLocaleString() + " ";
