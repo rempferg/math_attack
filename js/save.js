@@ -6,6 +6,10 @@ MB.save = (function () {
   const KEY = "math-blaster-save-v1";
   const SCORE_KEY = "math-attack-score-v1";
 
+  // TESTING ONLY (preview branch): pin the star total to a fixed value so the
+  // star unlocks can be exercised. Set to null to restore normal behaviour.
+  const TEST_SCORE = 400000;
+
   function defaults() {
     return {
       version: 1,
@@ -93,6 +97,7 @@ MB.save = (function () {
   }
 
   function scoreLoad() {
+    if (TEST_SCORE !== null) return TEST_SCORE;
     try {
       const n = parseInt(localStorage.getItem(SCORE_KEY), 10);
       return isNaN(n) || n < 0 ? 0 : n;
@@ -102,6 +107,7 @@ MB.save = (function () {
   }
 
   function scoreAdd(n) {
+    if (TEST_SCORE !== null) return TEST_SCORE;
     const total = scoreLoad() + Math.max(0, Math.floor(n));
     try {
       localStorage.setItem(SCORE_KEY, String(total));
