@@ -7,7 +7,6 @@ MB.sprites = (function () {
     const size = unit.size;
     const color = unit.color;
     power = power || 0;
-    g.clear();
     if (power > 0) {
       g.fillStyle(color, 0.1 + power * 0.05);
       g.fillCircle(0, 0, size * (1.6 + power * 0.4));
@@ -45,7 +44,6 @@ MB.sprites = (function () {
   }
 
   function drawBolt(g, level) {
-    g.clear();
     level = level || 0;
     if (level <= 0) {
       g.fillStyle(0x66e0ff, 1);
@@ -72,7 +70,6 @@ MB.sprites = (function () {
   }
 
   function drawSubBolt(g, level) {
-    g.clear();
     level = level || 0;
     var core = level >= 3 ? 0xffffff : 0x88e0ff;
     g.fillStyle(0x66e0ff, 0.3 + level * 0.05);
@@ -108,7 +105,6 @@ MB.sprites = (function () {
     const u = MB.config.ENEMY_UNITS[type];
     const size = u.size;
     const color = u.color;
-    g.clear();
     g.fillStyle(0x103310, 1);
     g.fillCircle(0, 0, size);
     g.fillStyle(color, 1);
@@ -127,7 +123,6 @@ MB.sprites = (function () {
   }
 
   function drawBase(g, w, h) {
-    g.clear();
     g.fillStyle(0x551133, 1);
     g.fillRoundedRect(-w / 2, -h / 2, w, h, 12);
     g.fillStyle(0xaa3366, 1);
@@ -200,7 +195,6 @@ MB.sprites = (function () {
   }
 
   function drawTorpedo(g, level) {
-    g.clear();
     level = level || 1;
     var bodyLen = 7 + level;
     var bodyW = 2 + level * 0.5;
