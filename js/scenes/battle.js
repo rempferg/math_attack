@@ -633,15 +633,20 @@ MB.Scenes.Battle = new Phaser.Class({
       }
     } else {
       const ignoreDronelets = u.kind === "brute" || u.kind === "queen";
+      let playerShipsAlive = false;
       for (let i = 0; i < this.playerUnits.length; i++) {
         const e = this.playerUnits[i];
-        if (e.dead || e.invisible) continue;
+        if (e.dead) continue;
+        playerShipsAlive = true;
+        if (e.invisible) continue;
         const dx = e.x - u.x;
         const dy = e.y - u.y;
         const d = dx * dx + dy * dy;
         if (d < bd) { bd = d; best = e; }
       }
-      if (!ignoreDronelets) {
+      // Brutes and queens prefer real ships over swarm dronelets, but once the
+      // fleet is gone they should mop up the carrier fighters too.
+      if (!ignoreDronelets || !playerShipsAlive) {
         for (let i = 0; i < this.dronelets.length; i++) {
           const e = this.dronelets[i];
           if (e.dead) continue;
