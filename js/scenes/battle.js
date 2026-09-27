@@ -63,11 +63,9 @@ MB.Scenes.Battle = new Phaser.Class({
       count = Math.min(count, MAX - idx);
       for (let i = 0; i < count; i++) {
         const def = C.UNITS[id];
-        const g = this.add.graphics();
-        MB.sprites.drawShip(g, def, true, this.power);
         const x = 70 + (idx % 5) * 48;
         const y = 150 + Math.floor(idx / 5) * 62;
-        g.setPosition(x, y);
+        const g = this.add.image(x, y, MB.sprites.ensureShipTexture(this, def, this.power));
         const bar = MB.ui.addHpBar(this, x, y - def.size - 10, 34, 5);
         this.playerUnits.push({
           side: "player",
@@ -112,11 +110,9 @@ MB.Scenes.Battle = new Phaser.Class({
       for (let i = 0; i < count; i++) {
         const def = C.ENEMY_UNITS[type];
         const hp = Math.round(def.hp * boost);
-        const g = this.add.graphics();
-        MB.sprites.drawAlien(g, type);
         const x = 900 - (idx % 5) * 44;
         const y = 170 + Math.floor(idx / 5) * 58;
-        g.setPosition(x, y);
+        const g = this.add.image(x, y, MB.sprites.ensureAlienTexture(this, type));
         const bar = MB.ui.addHpBar(this, x, y - def.size - 10, 34, 5);
         this.enemyUnits.push({
           side: "enemy",
@@ -140,11 +136,9 @@ MB.Scenes.Battle = new Phaser.Class({
 
   spawnBase: function () {
     const C = MB.config;
-    const g = this.add.graphics();
-    MB.sprites.drawBase(g, 84, 64);
     const x = 918;
     const y = C.HEIGHT / 2;
-    g.setPosition(x, y);
+    const g = this.add.image(x, y, MB.sprites.ensureBaseTexture(this, 84, 64));
     const bar = MB.ui.addHpBar(this, x, y - 50, 90, 8);
     const defaultHp = C.ENEMY_ARMIES[this.state.settings.difficulty].baseHp;
     const maxHp = Math.round(defaultHp * (this.state.enemyBoost || 1));
@@ -208,12 +202,10 @@ MB.Scenes.Battle = new Phaser.Class({
     const d = C.CARRIER.dronelet;
     const dmgMul = 1 + (this.upg.damage || 0) * C.UPGRADES.damage.perLevel;
     const rangeMul = 1 + (this.upg.range || 0) * C.UPGRADES.range.perLevel;
-    const g = this.add.graphics();
-    MB.sprites.drawShip(g, d, true, 0);
     const ang = Math.random() * Math.PI * 2;
     const x = Math.max(40, Math.min(905, carrier.x - 14 + Math.cos(ang) * 18));
     const y = Math.max(80, Math.min(480, carrier.y + Math.sin(ang) * 18));
-    g.setPosition(x, y);
+    const g = this.add.image(x, y, MB.sprites.ensureShipTexture(this, d, 0));
     this.dronelets.push({
       side: "player",
       kind: "dronelet",
@@ -460,9 +452,7 @@ MB.Scenes.Battle = new Phaser.Class({
     }
     MB.audio.torpedoLaunch();
     var target = clusters[0];
-    var g = this.add.graphics();
-    MB.sprites.drawTorpedo(g, tpLevel);
-    g.setPosition(u.x, u.y);
+    var g = this.add.image(u.x, u.y, MB.sprites.ensureTorpedoTexture(this, tpLevel));
     this.torpedoes.push({
       g: g,
       x: u.x, y: u.y,
@@ -630,32 +620,51 @@ MB.Scenes.Battle = new Phaser.Class({
   },
 
   nearestTarget: function (u) {
-    const C = MB.config;
-    const enemies = u.side === "player" ? this.enemyUnits : this.playerUnits.concat(this.dronelets);
     let best = null;
     let bd = Infinity;
-    for (let i = 0; i < enemies.length; i++) {
-      const e = enemies[i];
-      if (e.dead) continue;
-      if (e.invisible) continue;
-      if (e.kind === "dronelet" && (u.kind === "brute" || u.kind === "queen")) continue;
-      const d = this.dist(u.x, u.y, e.x, e.y);
-      if (d < bd) { bd = d; best = e; }
+    if (u.side === "player") {
+      for (let i = 0; i < this.enemyUnits.length; i++) {
+        const e = this.enemyUnits[i];
+        if (e.dead || e.invisible) continue;
+        const dx = e.x - u.x;
+        const dy = e.y - u.y;
+        const d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = e; }
+      }
+    } else {
+      const ignoreDronelets = u.kind === "brute" || u.kind === "queen";
+      for (let i = 0; i < this.playerUnits.length; i++) {
+        const e = this.playerUnits[i];
+        if (e.dead || e.invisible) continue;
+        const dx = e.x - u.x;
+        const dy = e.y - u.y;
+        const d = dx * dx + dy * dy;
+        if (d < bd) { bd = d; best = e; }
+      }
+      if (!ignoreDronelets) {
+        for (let i = 0; i < this.dronelets.length; i++) {
+          const e = this.dronelets[i];
+          if (e.dead) continue;
+          const dx = e.x - u.x;
+          const dy = e.y - u.y;
+          const d = dx * dx + dy * dy;
+          if (d < bd) { bd = d; best = e; }
+        }
+      }
     }
     if (u.side === "player" && !best && this.base.hp > 0) {
       best = this.base;
       bd = this.dist(u.x, u.y, this.base.x, this.base.y);
+      return { target: best, distance: bd };
     }
-    return { target: best, distance: bd };
+    return { target: best, distance: Math.sqrt(bd) };
   },
 
   fire: function (u, target) {
     const C = MB.config;
     this.shotCounter++;
-    const g = this.add.graphics();
     const boltLevel = this.upg.damage || 0;
-    MB.sprites.drawBolt(g, boltLevel);
-    g.setPosition(u.x, u.y);
+    const g = this.add.image(u.x, u.y, MB.sprites.ensureBoltTexture(this, boltLevel));
     const clusterLevel = u.side === "player" ? (this.upg.clusterMunitions || 0) : 0;
     const splinters = clusterLevel > 0 ? C.UPGRADES.clusterMunitions.levels[clusterLevel - 1].splinters : 0;
     const totalDist = this.dist(u.x, u.y, target.x, target.y);
@@ -779,9 +788,15 @@ MB.Scenes.Battle = new Phaser.Class({
     const C = MB.config;
     const count = p.splinters;
     const targets = this.selectSplitTargets(p.x, p.y, p.target, count);
+    const subKey = MB.sprites.ensureSubBoltTexture(this, p.boltLevel || 0);
     for (let k = 0; k < count; k++) {
-      const g = k === 0 ? p.g : this.add.graphics();
-      MB.sprites.drawSubBolt(g, p.boltLevel || 0);
+      let g;
+      if (k === 0) {
+        p.g.setTexture(subKey);
+        g = p.g;
+      } else {
+        g = this.add.image(p.x, p.y, subKey);
+      }
       const ox = p.x + (Math.random() * 6 - 3);
       const oy = p.y + (Math.random() * 6 - 3);
       g.setPosition(ox, oy);
@@ -857,17 +872,26 @@ MB.Scenes.Battle = new Phaser.Class({
   },
 
   spawnDamage: function (x, y, amount, side) {
+    // Text objects rasterise to their own canvas, so they are by far the most
+    // expensive thing spawned per hit. Cap how many can be alive at once.
+    if (this.damageTexts.length >= 24) return;
     const t = this.add.text(x + (Math.random() * 16 - 8), y, String(amount), {
       fontFamily: MB.config.FONT,
       fontSize: "10px",
       color: side === "enemy" ? "#ffffff" : "#ff8888"
     }).setOrigin(0.5);
+    this.damageTexts.push(t);
+    const self = this;
     this.tweens.add({
       targets: t,
       y: y - 28,
       alpha: 0,
       duration: 600,
-      onComplete: function () { t.destroy(); }
+      onComplete: function () {
+        const i = self.damageTexts.indexOf(t);
+        if (i >= 0) self.damageTexts.splice(i, 1);
+        t.destroy();
+      }
     });
   },
 

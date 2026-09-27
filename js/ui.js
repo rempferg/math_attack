@@ -78,13 +78,16 @@ MB.ui = (function () {
 
   function addStars(scene, count) {
     const stars = [];
+    const key = MB.sprites.ensureWhiteTexture(scene);
     for (let i = 0; i < count; i++) {
-      const g = scene.add.graphics();
       const a = 0.3 + Math.random() * 0.7;
       const size = Math.random() < 0.15 ? 2 : 1;
-      g.fillStyle(0xffffff, a);
-      g.fillCircle(Math.random() * MB.config.WIDTH, Math.random() * MB.config.HEIGHT, size);
-      stars.push({ g: g, x: g.x, y: g.y, speed: 0.1 + Math.random() * 0.5 });
+      const x = Math.random() * MB.config.WIDTH;
+      const y = Math.random() * MB.config.HEIGHT;
+      const g = scene.add.image(x, y, key);
+      g.setDisplaySize(size * 2, size * 2);
+      g.setAlpha(a);
+      stars.push({ g: g, x: x, y: y, speed: 0.1 + Math.random() * 0.5 });
     }
     return stars;
   }
@@ -99,19 +102,32 @@ MB.ui = (function () {
   }
 
   function addHpBar(scene, x, y, w, h) {
-    const bar = scene.add.container(x, y);
-    const bg = scene.add.graphics();
-    bg.fillStyle(0x330000, 1);
-    bg.fillRoundedRect(-w / 2, -h / 2, w, h, 3);
-    const fill = scene.add.graphics();
-    bar.add([bg, fill]);
-    bar.barW = w;
-    bar.barH = h;
-    bar.updateBar = function (ratio) {
-      fill.clear();
-      const clamped = Math.max(0, Math.min(1, ratio));
-      fill.fillStyle(0x44ff55, 1);
-      fill.fillRoundedRect(-w / 2, -h / 2, w * clamped, h, 3);
+    const key = MB.sprites.ensureWhiteTexture(scene);
+    const bg = scene.add.image(x, y, key).setDisplaySize(w, h).setTint(0x330000);
+    const fill = scene.add.image(x - w / 2, y, key).setOrigin(0, 0.5).setDisplaySize(w, h).setTint(0x44ff55);
+    const bar = {
+      barW: w,
+      barH: h,
+      setPosition: function (px, py) {
+        bg.setPosition(px, py);
+        fill.setPosition(px - w / 2, py);
+        return bar;
+      },
+      setAlpha: function (a) {
+        bg.setAlpha(a);
+        fill.setAlpha(a);
+        return bar;
+      },
+      updateBar: function (ratio) {
+        const clamped = Math.max(0, Math.min(1, ratio));
+        fill.setVisible(clamped > 0);
+        fill.setDisplaySize(Math.max(0.0001, w * clamped), h);
+        return bar;
+      },
+      destroy: function () {
+        bg.destroy();
+        fill.destroy();
+      }
     };
     bar.updateBar(1);
     return bar;

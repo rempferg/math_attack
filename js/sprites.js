@@ -294,5 +294,74 @@ MB.sprites = (function () {
     g.fillCircle(6, 10, 2.4);
   }
 
-  return { drawShip: drawShip, drawBolt: drawBolt, drawSubBolt: drawSubBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon, drawClusterMunitionsIcon: drawClusterMunitionsIcon, drawDroneBeam: drawDroneBeam };
+  // --- Texture baking -------------------------------------------------------
+  // Phaser draws every Graphics object as its own draw call. With a mission-50
+  // army (~100 enemies) plus fleet, HP bars and projectiles that is easily
+  // 1000+ draw calls per frame, which floors mobile GPUs. Baking each vector
+  // art once into a texture and using pooled Image objects lets Phaser batch
+  // them (same texture => one draw call).
+  function bake(scene, key, w, h, draw) {
+    if (scene.textures.exists(key)) return key;
+    var g = scene.make.graphics({ x: 0, y: 0, add: false });
+    g.translateCanvas(w / 2, h / 2);
+    draw(g);
+    g.generateTexture(key, w, h);
+    g.destroy();
+    return key;
+  }
+
+  function ensureShipTexture(scene, unit, power) {
+    power = power || 0;
+    if (power > 3) power = 3;
+    var key = "mb_ship_" + unit.id + "_p" + power;
+    var half = Math.ceil(unit.size * (power >= 3 ? 3 : 2.6)) + 2;
+    return bake(scene, key, half * 2, half * 2, function (g) {
+      drawShip(g, unit, true, power);
+    });
+  }
+
+  function ensureAlienTexture(scene, type) {
+    var key = "mb_alien_" + type;
+    var half = Math.ceil(MB.config.ENEMY_UNITS[type].size * 1.6) + 2;
+    return bake(scene, key, half * 2, half * 2, function (g) {
+      drawAlien(g, type);
+    });
+  }
+
+  function ensureBaseTexture(scene, w, h) {
+    var key = "mb_base_" + w + "x" + h;
+    return bake(scene, key, w + 24, h + 44, function (g) {
+      drawBase(g, w, h);
+    });
+  }
+
+  function ensureBoltTexture(scene, level) {
+    level = level || 0;
+    return bake(scene, "mb_bolt_" + level, 44, 44, function (g) {
+      drawBolt(g, level);
+    });
+  }
+
+  function ensureSubBoltTexture(scene, level) {
+    level = level || 0;
+    return bake(scene, "mb_subbolt_" + level, 22, 22, function (g) {
+      drawSubBolt(g, level);
+    });
+  }
+
+  function ensureTorpedoTexture(scene, level) {
+    level = level || 1;
+    return bake(scene, "mb_torpedo_" + level, 48, 22, function (g) {
+      drawTorpedo(g, level);
+    });
+  }
+
+  function ensureWhiteTexture(scene) {
+    return bake(scene, "mb_white", 2, 2, function (g) {
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(-1, -1, 2, 2);
+    });
+  }
+
+  return { drawShip: drawShip, drawBolt: drawBolt, drawSubBolt: drawSubBolt, drawUpgradeIcon: drawUpgradeIcon, drawAlien: drawAlien, drawBase: drawBase, drawHomeBase: drawHomeBase, drawSniperBeam: drawSniperBeam, drawSniperIcon: drawSniperIcon, drawTorpedo: drawTorpedo, drawTorpedoExplosion: drawTorpedoExplosion, drawTorpedoIcon: drawTorpedoIcon, drawLockIcon: drawLockIcon, drawInvisibilityIcon: drawInvisibilityIcon, drawClusterMunitionsIcon: drawClusterMunitionsIcon, drawDroneBeam: drawDroneBeam, ensureShipTexture: ensureShipTexture, ensureAlienTexture: ensureAlienTexture, ensureBaseTexture: ensureBaseTexture, ensureBoltTexture: ensureBoltTexture, ensureSubBoltTexture: ensureSubBoltTexture, ensureTorpedoTexture: ensureTorpedoTexture, ensureWhiteTexture: ensureWhiteTexture };
 })();
