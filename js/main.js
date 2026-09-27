@@ -12,6 +12,17 @@ window.MB = window.MB || {};
     height: C.HEIGHT,
     parent: "game",
     backgroundColor: "#050518",
+    fps: {
+      // Phaser clamps each frame's delta to the target frame time for the first
+      // `panicMax` frames after the page (re)gains focus. On a slow device that
+      // makes the whole simulation run in slow motion until the cooldown ends,
+      // then snap back to normal speed. Disabling the cooldown keeps game speed
+      // tied to real time; single deltas are still capped at 1/min fps, so
+      // returning from the background cannot make units jump.
+      min: 5,
+      target: 60,
+      panicMax: 0
+    },
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
