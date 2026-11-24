@@ -26,7 +26,7 @@ MB.Scenes.Setup = new Phaser.Class({
     C.OPS.forEach(function (op) {
       buttons.push({ type: "op", op: op, label: C.OP_NAMES[op], on: this.state.settings.ops[op] });
     }, this);
-    buttons.push({ type: "spelling", label: "Spelling", on: !!this.state.settings.spelling });
+    buttons.push({ type: "order", label: "Order of Operations", on: !!this.state.settings.orderOps });
 
     buttons.forEach(function (btn, i) {
       const x = startX + (i % cols) * (opW + gap);
@@ -35,7 +35,7 @@ MB.Scenes.Setup = new Phaser.Class({
         if (btn.type === "op") {
           this.toggleOp(btn.op);
         } else {
-          this.toggleSpelling();
+          this.toggleOrder();
         }
       }).bind(this);
       const button = MB.ui.addButton(this, x, y, opW, 46, btn.label, {
@@ -47,7 +47,7 @@ MB.Scenes.Setup = new Phaser.Class({
       if (btn.type === "op") {
         this.opButtons[btn.op] = button;
       } else {
-        this.spellingButton = button;
+        this.orderButton = button;
       }
     }, this);
 
@@ -97,10 +97,10 @@ MB.Scenes.Setup = new Phaser.Class({
     MB.audio.click();
   },
 
-  toggleSpelling: function () {
-    this.state.settings.spelling = !this.state.settings.spelling;
-    const on = !!this.state.settings.spelling;
-    this.refreshButtonColor(this.spellingButton, on ? 0x2a9d3f : 0x333366, on ? 0x3ac24f : 0x444488);
+  toggleOrder: function () {
+    this.state.settings.orderOps = !this.state.settings.orderOps;
+    const on = !!this.state.settings.orderOps;
+    this.refreshButtonColor(this.orderButton, on ? 0x2a9d3f : 0x333366, on ? 0x3ac24f : 0x444488);
     MB.save.save(this.state);
     MB.audio.click();
   },

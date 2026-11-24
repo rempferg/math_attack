@@ -12,7 +12,8 @@ MB.save = (function () {
       settings: {
         ops: { add: true, sub: true, mul: true, div: true, divR: true },
         difficulty: "easy",
-        spelling: true
+        orderOps: true,
+        spelling: false
       },
       army: { drone: 0, fighter: 0, cruiser: 0, dreadnought: 0, carrier: 0 },
       battlesWon: 0,
@@ -37,6 +38,8 @@ MB.save = (function () {
       const dataSettings = data.settings || {};
       const mergedSettings = Object.assign({}, base.settings, dataSettings);
       mergedSettings.ops = Object.assign({}, base.settings.ops, dataSettings.ops || {});
+      // Spelling is no longer activatable; ignore the flag in older saves.
+      mergedSettings.spelling = false;
       const merged = {
         version: base.version,
         settings: mergedSettings,

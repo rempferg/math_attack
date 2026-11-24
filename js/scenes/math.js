@@ -112,8 +112,13 @@ MB.Scenes.Math = new Phaser.Class({
   loadProblem: function () {
     this.problem = null;
     const rec = this.state.pendingProblems[this.subject];
+    const orderEnabled = !!this.state.settings.orderOps;
     if (rec && rec.spelling && this.state.settings.spelling &&
         rec.sentence && rec.answer && Array.isArray(rec.options)) {
+      this.problem = rec;
+      if (this.mode === "upg") this.streak = rec.streak || 0;
+    } else if (rec && rec.op === "order" && rec.band === this.band && orderEnabled &&
+        rec.text && rec.answer != null && Array.isArray(rec.options)) {
       this.problem = rec;
       if (this.mode === "upg") this.streak = rec.streak || 0;
     } else if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
@@ -122,6 +127,10 @@ MB.Scenes.Math = new Phaser.Class({
     } else if (rec && rec.text && rec.band === this.band && (this.state.settings.ops[rec.op] || false)) {
       this.problem = rec;
       if (this.mode === "upg") this.streak = rec.streak || 0;
+    } else if (orderEnabled && Math.random() < MB.config.ORDER_OPS_PROBABILITY) {
+      this.problem = MB.math.makeOrderProblem(this.band);
+      this.problem.streak = this.streak;
+      this.bufferProblem();
     } else {
       this.problem = MB.math.makeProblem(this.band);
       this.problem.streak = this.streak;
@@ -133,7 +142,7 @@ MB.Scenes.Math = new Phaser.Class({
 
   renderProblem: function () {
     const p = this.problem;
-    this.titleText.setText(p.spelling ? "SPELLING" : this.baseTitle);
+    this.titleText.setText(p.spelling ? "SPELLING" : (p.op === "order" ? "ORDER OF OPERATIONS" : this.baseTitle));
     if (p.spelling) {
       this.problemText.setVisible(false);
       this.sentenceText.setVisible(true).setText(p.sentence);
@@ -301,6 +310,10 @@ MB.Scenes.Math = new Phaser.Class({
     if (this.state.settings.spelling && MB.spelling.isReady() && Math.random() < MB.config.SPELLING_PROBABILITY) {
       this.problem = MB.spelling.pick();
       this.bufferSpelling();
+    } else if (this.state.settings.orderOps && Math.random() < MB.config.ORDER_OPS_PROBABILITY) {
+      this.problem = MB.math.makeOrderProblem(this.band);
+      this.problem.streak = this.streak;
+      this.bufferProblem();
     } else {
       this.problem = MB.math.makeProblem(this.band);
       this.problem.streak = this.streak;

@@ -59,6 +59,121 @@ MB.math = (function () {
     return p;
   }
 
+  function orderRanges(band) {
+    return {
+      add: Math.max(4, Math.min(C.NUM_RANGES.add[band] || C.NUM_RANGES.add.medium, 20)),
+      mul: Math.max(2, Math.min(C.NUM_RANGES.mul[band] || C.NUM_RANGES.mul.medium, 20)),
+      div: Math.max(2, Math.min(C.NUM_RANGES.div[band] || C.NUM_RANGES.div.medium, 20))
+    };
+  }
+
+  // Order-of-operations problems use German notation: "·" for times and ":" for divide.
+  function makeOrderProblem(band) {
+    const r = orderRanges(band);
+    const ra = r.add;
+    const rm = r.mul;
+    const rd = r.div;
+    const half = Math.max(2, Math.floor(ra / 2));
+
+    const templates = [
+      function () {
+        const a = rnd(1, ra);
+        const b = rnd(2, rm);
+        const c = rnd(2, rm);
+        return { text: a + " + " + b + " \u00b7 " + c, answer: a + b * c };
+      },
+      function () {
+        const a = rnd(2, rm);
+        const b = rnd(2, rm);
+        const c = rnd(1, ra);
+        return { text: a + " \u00b7 " + b + " + " + c, answer: a * b + c };
+      },
+      function () {
+        const a = rnd(2, rm);
+        const b = rnd(2, rm);
+        const c = rnd(1, Math.max(1, Math.min(ra, a * b - 1)));
+        return { text: a + " \u00b7 " + b + " - " + c, answer: a * b - c };
+      },
+      function () {
+        const c = rnd(2, rd);
+        const q = rnd(1, rd);
+        const a = rnd(1, ra);
+        return { text: a + " + " + (c * q) + " : " + c, answer: a + q };
+      },
+      function () {
+        const b = rnd(2, rd);
+        const q = rnd(1, rd);
+        const c = rnd(1, ra);
+        return { text: (b * q) + " : " + b + " + " + c, answer: q + c };
+      },
+      function () {
+        const a = rnd(1, half);
+        const b = rnd(1, half);
+        const c = rnd(2, rm);
+        return { text: "(" + a + " + " + b + ") \u00b7 " + c, answer: (a + b) * c };
+      },
+      function () {
+        const a = rnd(2, ra);
+        const b = rnd(1, a - 1);
+        const c = rnd(2, rm);
+        return { text: "(" + a + " - " + b + ") \u00b7 " + c, answer: (a - b) * c };
+      },
+      function () {
+        const a = rnd(2, rm);
+        const b = rnd(1, half);
+        const c = rnd(1, half);
+        return { text: a + " \u00b7 (" + b + " + " + c + ")", answer: a * (b + c) };
+      },
+      function () {
+        const c = rnd(2, rd);
+        const q = rnd(1, rd);
+        const s = c * q;
+        const a = rnd(1, s - 1);
+        const b = s - a;
+        return { text: "(" + a + " + " + b + ") : " + c, answer: q };
+      },
+      function () {
+        const b = rnd(1, half);
+        const c = rnd(1, half);
+        const s = b + c;
+        const q = rnd(1, rd);
+        return { text: (s * q) + " : (" + b + " + " + c + ")", answer: q };
+      },
+      function () {
+        const a = rnd(2, rm);
+        const b = rnd(2, rm);
+        const c = rnd(2, rm);
+        const d = rnd(2, rm);
+        return { text: a + " \u00b7 " + b + " + " + c + " \u00b7 " + d, answer: a * b + c * d };
+      },
+      function () {
+        const a = rnd(2, rm);
+        const b = rnd(2, rm);
+        const lhs = a * b;
+        if (lhs < 6) return null;
+        const c = rnd(2, Math.min(rm, Math.floor((lhs - 1) / 2)));
+        const d = rnd(2, Math.max(2, Math.min(rm, Math.floor((lhs - 1) / c))));
+        if (c * d >= lhs) return null;
+        return { text: a + " \u00b7 " + b + " - " + c + " \u00b7 " + d, answer: lhs - c * d };
+      }
+    ];
+
+    let p = null;
+    for (let guard = 0; !p && guard < 50; guard++) {
+      p = templates[rnd(0, templates.length - 1)]();
+    }
+    if (!p) {
+      const a = rnd(1, ra);
+      const b = rnd(2, rm);
+      const c = rnd(2, rm);
+      p = { text: a + " + " + b + " \u00b7 " + c, answer: a + b * c };
+    }
+    p.op = "order";
+    p.band = band;
+    p.options = pickAnswer(p);
+    return p;
+  }
+
   function randomOp() {
     const ops = [];
     const s = MB.save;
@@ -111,11 +226,12 @@ MB.math = (function () {
   }
 
   function makeProblem(band, opHint) {
+    if (opHint === "order") return makeOrderProblem(band || "easy");
     const op = opHint || randomOp();
     const p = makeOne(op, band || "easy");
     p.options = pickAnswer(p);
     return p;
   }
 
-  return { makeProblem: makeProblem, randomOp: randomOp };
+  return { makeProblem: makeProblem, makeOrderProblem: makeOrderProblem, randomOp: randomOp };
 })();

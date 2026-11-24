@@ -238,6 +238,8 @@ MB.config = (function () {
 
   const SCORE_WEIGHTS = { grunt: 10, brute: 25, queen: 50 };
 
+  const ORDER_OPS_PROBABILITY = 0.25;     // fraction of asked questions that are order-of-operations problems
+
   const SPELLING_URL = "https://1x1.rempfer.eu/api/words/mistakes/";
   const SPELLING_PROBABILITY = 0.25;      // fraction of asked questions that are spelling questions
   const SPELLING_LIMIT = 25;              // number of word samples requested from the API
@@ -270,6 +272,7 @@ MB.config = (function () {
     UPGRADES: UPGRADES,
     UPGRADE_LEVELS: UPGRADE_LEVELS,
     SCORE_WEIGHTS: SCORE_WEIGHTS,
+    ORDER_OPS_PROBABILITY: ORDER_OPS_PROBABILITY,
     SPELLING_URL: SPELLING_URL,
     SPELLING_PROBABILITY: SPELLING_PROBABILITY,
     SPELLING_LIMIT: SPELLING_LIMIT,

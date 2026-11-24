@@ -4,7 +4,8 @@ window.MB = window.MB || {};
   "use strict";
   const C = MB.config;
 
-  MB.spelling.init();
+  // Spelling is kept in the codebase but is no longer activatable.
+  // MB.spelling.init();
 
   const config = {
     type: Phaser.AUTO,
