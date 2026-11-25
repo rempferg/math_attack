@@ -155,8 +155,9 @@ MB.Scenes.Math = new Phaser.Class({
       }, this);
     } else {
       this.sentenceText.setVisible(false);
-      this.problemText.setVisible(true).setFontSize(38);
+      this.problemText.setVisible(true);
       this.problemText.setText(p.text + " = ?");
+      this.fitProblemText();
       this.answers.forEach(function (btn, i) {
         btn.list[1].setFontSize(26);
         btn.list[1].setText(String(p.options[i]));
@@ -167,6 +168,18 @@ MB.Scenes.Math = new Phaser.Class({
       this.streakText.setText("Chain: " + this.streak + "/" + this.chain);
     } else {
       this.streakText.setText("Streak: " + this.streak);
+    }
+  },
+
+  fitProblemText: function () {
+    const maxW = 560;
+    let size = 38;
+    this.problemText.setFontSize(size);
+    this.problemText.updateText();
+    while (size > 16 && this.problemText.width > maxW) {
+      size -= 1;
+      this.problemText.setFontSize(size);
+      this.problemText.updateText();
     }
   },
 
